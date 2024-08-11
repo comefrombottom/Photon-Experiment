@@ -243,7 +243,7 @@ namespace s3d
 
 		void serverErrorReturn([[maybe_unused]] const int errorCode) override
 		{
-
+			
 		}
 
 		// 誰か（自分を含む）がルームに参加したら呼ばれるコールバック
@@ -628,6 +628,21 @@ namespace s3d
 		}
 
 		m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(maxPlayers));
+	}
+
+	void Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, int32 expectedMaxPlayers)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not InRange(expectedMaxPlayers, 1, 255))
+		{
+			return;
+		}
+
+		m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(expectedMaxPlayers));
 	}
 
 	void Multiplayer_Photon::joinRoom(const RoomNameView roomName)

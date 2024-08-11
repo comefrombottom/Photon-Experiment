@@ -135,14 +135,19 @@ namespace s3d
 		int32 getBytesOut() const;
 
 		/// @brief ランダムなルームに参加を試みます。
-		/// @param maxPlayers ルームの最大人数
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void joinRandomRoom(int32 maxPlayers);
+		void joinRandomRoom(int32 expectedMaxPlayers = 0);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
-		/// @param maxPlayers ルームの最大人数
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）ルーム作成時の最大人数にも利用されます。
 		/// @param roomName ルーム名
-		void joinRandomOrCreateRoom(int32 maxPlayers, RoomNameView roomName);
+		void joinRandomOrCreateRoom(int32 expectedMaxPlayers, RoomNameView roomName);
+
+		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）ルーム作成時の最大人数にも利用されます。
+		/// @param roomName ルーム名
+		void joinRandomOrCreateRoom(RoomNameView roomName, int32 expectedMaxPlayers = 0);
 
 		/// @brief 指定したルームに参加を試みます。
 		/// @param roomName ルーム名
@@ -150,9 +155,9 @@ namespace s3d
 
 		/// @brief ルームの作成を試みます。
 		/// @param roomName ルーム名
-		/// @param maxPlayers ルームの最大人数
+		/// @param maxPlayers ルームの最大人数（0の場合は指定なし）
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void createRoom(RoomNameView roomName, int32 maxPlayers);
+		void createRoom(RoomNameView roomName, int32 maxPlayers = 0);
 
 		/// @brief ルームからの退出を試みます。
 		void leaveRoom();
