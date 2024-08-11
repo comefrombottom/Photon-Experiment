@@ -1218,6 +1218,59 @@ namespace s3d
 		return m_client->getIsInGameRoom();
 	}
 
+	Multiplayer_Photon::NetworkState Multiplayer_Photon::getNetworkState() const
+	{
+		if (not m_client)
+		{
+			return NetworkState::Disconnected;
+		}
+
+		using namespace ExitGames::LoadBalancing::PeerStates;
+
+		switch (m_client->getState()) {
+		case Uninitialized:
+		case PeerCreated:
+			return NetworkState::Disconnected;
+		case ConnectingToNameserver:
+		case ConnectedToNameserver:
+		case DisconnectingFromNameserver:
+		case Connecting:
+		case Connected:
+		case WaitingForCustomAuthenticationNextStepCall:
+		case Authenticated:
+			return NetworkState::ConnectingToLobby;
+		case JoinedLobby:
+			return NetworkState::InLobby;
+		case DisconnectingFromMasterserver:
+		case ConnectingToGameserver:
+		case ConnectedToGameserver:
+		case AuthenticatedOnGameServer:
+		case Joining:
+			return NetworkState::JoiningRoom;
+		case Joined:
+			return NetworkState::InRoom;
+		case Leaving:
+		case Left:
+		case DisconnectingFromGameserver:
+		case ConnectingToMasterserver:
+		case ConnectedComingFromGameserver:
+		case AuthenticatedComingFromGameserver:
+			return NetworkState::LeavingRoom;
+		case Disconnecting:
+		case Disconnected:
+			return NetworkState::Disconnecting;
+		}
+	}
+
+	int32 Multiplayer_Photon::getState() const
+	{
+		if (not m_client)
+		{
+			return -1;
+		}
+		return m_client->getState();
+	}
+
 	String Multiplayer_Photon::getCurrentRoomName() const
 	{
 		if (not m_client)

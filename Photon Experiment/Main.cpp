@@ -242,14 +242,32 @@ void Main()
 	const std::string secretAppID{ SIV3D_OBFUSCATE(PHOTON_APP_ID) };
 	MyNetwork network{ secretAppID, U"1.0", Verbose::Yes };
 
+	int32 state = -2;
+
 	while (System::Update())
 	{
 		network.update();
 
+		int32 prev_state = state;
+		state = network.getState();
+		if (state != prev_state) {
+			Console << U"state:{}"_fmt(state);
+			Console <<U"LoomNameList:" << network.getRoomNameList();
+			Console << U"RoomName:" << network.getCurrentRoomName();
+		}
+
+		if (KeySpace.down()) {
+			Console << U"state:{}"_fmt(state);
+			Console << U"LoomNameList:" << network.getRoomNameList();
+			Console << U"RoomName:" << network.getCurrentRoomName();
+		}
+		PutText(U"state:{}"_fmt(state), Scene::Center());
+
+
 		if (SimpleGUI::Button(U"Connect", Vec2{ 1000, 20 }, 160, (not network.isActive())))
 		{
 			const String userName = U"Siv";
-			network.connect(userName);
+			network.connect(userName, U"jp");
 		}
 
 		if (SimpleGUI::Button(U"Disconnect", Vec2{ 1000, 60 }, 160, network.isActive()))

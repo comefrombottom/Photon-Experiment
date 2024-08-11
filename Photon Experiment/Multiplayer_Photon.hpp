@@ -73,6 +73,16 @@ namespace s3d
 	{
 	public:
 
+		enum class NetworkState : uint8{
+			Disconnected,
+			ConnectingToLobby,
+			InLobby,
+			JoiningRoom,
+			InRoom,
+			LeavingRoom,
+			Disconnecting,
+		};
+
 		/// @brief デフォルトコンストラクタ
 		SIV3D_NODISCARD_CXX20
 		Multiplayer_Photon() = default;
@@ -425,6 +435,10 @@ namespace s3d
 		/// @return ルームに参加している場合 true, それ以外の場合は false
 		[[nodiscard]]
 		bool isInRoom() const;
+
+		NetworkState getNetworkState() const;
+
+		int32 getState() const;
 
 		/// @brief 現在参加しているルーム名を返します。
 		/// @return 現在のルーム名。ルームに参加していない場合は空の文字列
@@ -788,7 +802,7 @@ namespace s3d
 		String m_photonAppVersion;
 
 		Optional<String> m_requestedRegion;
-
+		
 		bool m_isActive = false;
 	};
 }
