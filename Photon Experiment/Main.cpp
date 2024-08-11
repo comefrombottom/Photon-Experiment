@@ -29,6 +29,14 @@ private:
 
 	Array<LocalPlayer> m_localPlayers;
 
+	void initResister() {
+		
+	}
+
+	void castumDataReceive111(const LocalPlayerID sender, int32 i, double d, Vec2 v) {
+		Print << U"<<< 111を受信:{},{},{}"_fmt(i, d, v);
+	}
+
 	void connectReturn([[maybe_unused]] const int32 errorCode, const String& errorString, const String& region, [[maybe_unused]] const String& cluster) override
 	{
 		if (m_verbose)
@@ -337,6 +345,15 @@ void Main()
 
 			Print << U"eventCode: 123, MyData(" << myData.word << U", " << myData.pos << U") を送信 >>>";
 			network.sendEvent(123, Serializer<MemoryWriter>{}(myData));
+		}
+
+		// ランダムな MyData を送るボタン
+		if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, 420 }, 200, network.isInRoom()))
+		{
+			
+
+			Print << U"eventCode: 111 を送信 >>>";
+			network.sendEvent(111, unspecified, int32(1), 2.2, Vec2(3.3, 4.4));
 		}
 	}
 }

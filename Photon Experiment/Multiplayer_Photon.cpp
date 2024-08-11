@@ -372,7 +372,13 @@ namespace s3d
 							const auto values = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
 							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
 							Deserializer<MemoryViewReader> reader{ values, length };
-							m_context.customEventAction(playerID, eventCode, reader);
+							if (m_context.table.contains(eventCode)) {
+								m_context.table[eventCode](playerID, reader);
+							}
+							else {
+								m_context.customEventAction(playerID, eventCode, reader);
+							}
+							//m_context.customEventAction(playerID, eventCode, reader);
 							break;
 						}
 					default:

@@ -401,6 +401,12 @@ namespace s3d
 		/// @remark ユーザ定義型を送信する際に利用します。
 		void sendEvent(uint8 eventCode, const Serializer<MemoryWriter>& writer, const Optional<Array<LocalPlayerID>>& targets = unspecified);
 
+		template<class... Args>
+		void sendEvent(uint8 eventCode, const Optional<Array<LocalPlayerID>>& targets = unspecified, Args... args)
+		{
+			sendEvent(eventCode, targets, Serializer<MemoryWriter>{}(args...));
+		}
+
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名
 		[[nodiscard]]
@@ -780,6 +786,45 @@ namespace s3d
 		[[nodiscard]]
 		static int32 GetSystemTimeMillisec();
 
+		template<class... Args>
+		using EventCallback = void (Multiplayer_Photon::*)(LocalPlayerID, const std::remove_cv<Args>&...);
+
+		template<class... Args>
+		void RegisterEventCallback(uint8 eventCode, EventCallback<Args...> callback);
+
+	private:
+		struct EventCallbackRegistryBase
+		{
+			using CallbackWrapper = void (*) (void*, LocalPlayerID, Deserializer<MemoryViewReader>&);
+
+			CallbackWrapper wrapper;
+			void* callback;
+
+			void operator()(LocalPlayerID player, Deserializer<MemoryViewReader>& reader) const
+			{
+				wrapper(callback, player, reader);
+			}
+		};
+
+		template<class... Args>
+		struct EventCallbackRegistry : public EventCallbackRegistryBase
+		{
+			constexpr EventCallbackRegistry(EventCallback<Args...> callback) : callback(callback), wrapper(wrapper) {}
+
+			static void wrapper(void* callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader)
+			{
+				std::tuple<Args...> args{};
+				wrapperImpl<std::make_index_sequence<std::tuple_size_v<std::tuple<Args...>>>>(callback, player, reader, args);
+			}
+
+			template<std::size_t... I>
+			static void wrapperImpl(void* callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<Args...> args)
+			{
+				reader(&std::get<I>(args)...);
+				static_cast<EventCallback<Args...>>(callback)(player, std::get<I>(args)...);
+			}
+		};
+
 	protected:
 
 		/// @brief 既存のランダムマッチが見つからなかった時のエラーコード
@@ -802,7 +847,15 @@ namespace s3d
 		String m_photonAppVersion;
 
 		Optional<String> m_requestedRegion;
+
+		HashTable<uint8, EventCallbackRegistryBase> table;
 		
 		bool m_isActive = false;
 	};
+
+	template<class ...Args>
+	inline void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, EventCallback<Args...> callback)
+	{
+		table[eventCode] = EventCallbackRegistry(callback);
+	}
 }
