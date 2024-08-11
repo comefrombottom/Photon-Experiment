@@ -607,7 +607,7 @@ namespace s3d
 			return;
 		}
 
-		if (not InRange(maxPlayers, 1, 255))
+		if (not InRange(maxPlayers, 0, 255))
 		{
 			return;
 		}
@@ -622,7 +622,7 @@ namespace s3d
 			return;
 		}
 
-		if (not InRange(maxPlayers, 1, 255))
+		if (not InRange(maxPlayers, 0, 255))
 		{
 			return;
 		}
@@ -637,7 +637,7 @@ namespace s3d
 			return;
 		}
 
-		if (not InRange(expectedMaxPlayers, 1, 255))
+		if (not InRange(expectedMaxPlayers, 0, 255))
 		{
 			return;
 		}
@@ -663,7 +663,7 @@ namespace s3d
 			return;
 		}
 
-		if (not InRange(maxPlayers, 1, 255))
+		if (not InRange(maxPlayers, 0, 255))
 		{
 			return;
 		}

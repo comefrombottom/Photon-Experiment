@@ -21,7 +21,7 @@ class MyNetwork : public Multiplayer_Photon
 {
 public:
 
-	static constexpr int32 MaxPlayers = 3;
+	//static constexpr int32 MaxPlayers = 3;
 
 	using Multiplayer_Photon::Multiplayer_Photon;
 
@@ -86,7 +86,7 @@ private:
 				Print << U"[自分でルーム " << roomName << U" を新規作成する]";
 			}
 
-			createRoom(roomName, MaxPlayers);
+			createRoom(roomName);
 
 			return;
 		}
@@ -259,7 +259,7 @@ void Main()
 
 		if (SimpleGUI::Button(U"Join Room", Vec2{ 1000, 100 }, 160, network.isInLobby()))
 		{
-			network.joinRandomRoom(MyNetwork::MaxPlayers);
+			network.joinRandomRoom();
 		}
 
 		if (SimpleGUI::Button(U"Leave Room", Vec2{ 1000, 140 }, 160, network.isInRoom()))
