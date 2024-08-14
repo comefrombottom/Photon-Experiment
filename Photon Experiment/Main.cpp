@@ -25,15 +25,18 @@ public:
 
 	using Multiplayer_Photon::Multiplayer_Photon;
 
+	void initResister() {
+		// シリアライズデータを受信したときに呼ばれる関数を登録する
+		RegisterEventCallback(111, &MyNetwork::castumDataReceive111);
+	}
+
 private:
 
 	Array<LocalPlayer> m_localPlayers;
 
-	void initResister() {
-		
-	}
+	
 
-	void castumDataReceive111(const LocalPlayerID sender, int32 i, double d, Vec2 v) {
+	void castumDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
 		Print << U"<<< 111を受信:{},{},{}"_fmt(i, d, v);
 	}
 
@@ -241,6 +244,14 @@ private:
 			reader(mydata);
 			Print << U"<<< [" << playerID << U"] からの MyData(" << mydata.word << U", " << mydata.pos << U") を受信";
 		}
+
+		if (eventCode == 111) {
+			int32 i;
+			double d;
+			Vec2 v;
+			reader(i, d, v);
+			Print << U"<<< [" << playerID << U"] からの{},{},{}"_fmt(i, d, v) << U") を受信";
+		}
 	}
 };
 
@@ -249,7 +260,7 @@ void Main()
 	Window::Resize(1280, 720);
 	const std::string secretAppID{ SIV3D_OBFUSCATE(PHOTON_APP_ID) };
 	MyNetwork network{ secretAppID, U"1.0", Verbose::Yes };
-
+	network.initResister();
 	int32 state = -2;
 
 	while (System::Update())
@@ -259,15 +270,15 @@ void Main()
 		int32 prev_state = state;
 		state = network.getState();
 		if (state != prev_state) {
-			Console << U"state:{}"_fmt(state);
-			Console <<U"LoomNameList:" << network.getRoomNameList();
-			Console << U"RoomName:" << network.getCurrentRoomName();
+			//Console << U"state:{}"_fmt(state);
+			//Console <<U"LoomNameList:" << network.getRoomNameList();
+			//Console << U"RoomName:" << network.getCurrentRoomName();
 		}
 
 		if (KeySpace.down()) {
-			Console << U"state:{}"_fmt(state);
-			Console << U"LoomNameList:" << network.getRoomNameList();
-			Console << U"RoomName:" << network.getCurrentRoomName();
+			//Console << U"state:{}"_fmt(state);
+			//Console << U"LoomNameList:" << network.getRoomNameList();
+			//Console << U"RoomName:" << network.getCurrentRoomName();
 		}
 		PutText(U"state:{}"_fmt(state), Scene::Center());
 
@@ -353,7 +364,7 @@ void Main()
 			
 
 			Print << U"eventCode: 111 を送信 >>>";
-			network.sendEvent(111, unspecified, int32(1), 2.2, Vec2(3.3, 4.4));
+			network.sendEvent(111, unspecified, int32(1), 2.2, Vec2(3, 3));
 		}
 	}
 }

@@ -68,12 +68,22 @@ namespace s3d
 		bool isActive = false;
 	};
 
+	class Multiplayer_Photon;
+
+	namespace detail
+	{
+		using TypeErasedCallback = void(Multiplayer_Photon::*)();
+		using CallbackWrapper = void(*)(Multiplayer_Photon&, TypeErasedCallback, LocalPlayerID, Deserializer<MemoryViewReader>&);
+
+		using CustomEventReceiver = std::pair<TypeErasedCallback, CallbackWrapper>;
+	}
+
 	/// @brief マルチプレイヤー用クラス (Photon バックエンド)
 	class Multiplayer_Photon
 	{
 	public:
 
-		enum class NetworkState : uint8{
+		enum class NetworkState : uint8 {
 			Disconnected,
 			ConnectingToLobby,
 			InLobby,
@@ -85,7 +95,7 @@ namespace s3d
 
 		/// @brief デフォルトコンストラクタ
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon() = default;
+			Multiplayer_Photon() = default;
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -93,7 +103,7 @@ namespace s3d
 		/// @param デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes);
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes);
 
 		/// @brief デストラクタ
 		virtual ~Multiplayer_Photon();
@@ -248,7 +258,7 @@ namespace s3d
 		/// @param eventCode イベントコード
 		/// @param value 送信するデータ
 		/// @param targets 送信先のプレイヤーのローカル ID, unspecified の場合は自分以外の全員
-		void sendEvent(uint8 eventCode, const Array<int16>&value, const Optional<Array<LocalPlayerID>>& targets = unspecified);
+		void sendEvent(uint8 eventCode, const Array<int16>& value, const Optional<Array<LocalPlayerID>>& targets = unspecified);
 
 		/// @brief ルームにイベントを送信します。
 		/// @param eventCode イベントコード
@@ -260,7 +270,7 @@ namespace s3d
 		/// @param eventCode イベントコード
 		/// @param value 送信するデータ
 		/// @param targets 送信先のプレイヤーのローカル ID, unspecified の場合は自分以外の全員
-		void sendEvent(uint8 eventCode, const Array<int64>&value, const Optional<Array<LocalPlayerID>>& targets = unspecified);
+		void sendEvent(uint8 eventCode, const Array<int64>& value, const Optional<Array<LocalPlayerID>>& targets = unspecified);
 
 		/// @brief ルームにイベントを送信します。
 		/// @param eventCode イベントコード
@@ -404,7 +414,7 @@ namespace s3d
 		template<class... Args>
 		void sendEvent(uint8 eventCode, const Optional<Array<LocalPlayerID>>& targets = unspecified, Args... args)
 		{
-			sendEvent(eventCode, targets, Serializer<MemoryWriter>{}(args...));
+			sendEvent(eventCode, Serializer<MemoryWriter>{}(args...), targets);
 		}
 
 		/// @brief 自身のユーザ名を返します。
@@ -786,44 +796,11 @@ namespace s3d
 		[[nodiscard]]
 		static int32 GetSystemTimeMillisec();
 
-		template<class... Args>
-		using EventCallback = void (Multiplayer_Photon::*)(LocalPlayerID, const std::remove_cv<Args>&...);
+		template<class T, class... Args>
+		using EventCallbackType = void (T::*)(LocalPlayerID, Args...);
 
-		template<class... Args>
-		void RegisterEventCallback(uint8 eventCode, EventCallback<Args...> callback);
-
-	private:
-		struct EventCallbackRegistryBase
-		{
-			using CallbackWrapper = void (*) (void*, LocalPlayerID, Deserializer<MemoryViewReader>&);
-
-			CallbackWrapper wrapper;
-			void* callback;
-
-			void operator()(LocalPlayerID player, Deserializer<MemoryViewReader>& reader) const
-			{
-				wrapper(callback, player, reader);
-			}
-		};
-
-		template<class... Args>
-		struct EventCallbackRegistry : public EventCallbackRegistryBase
-		{
-			constexpr EventCallbackRegistry(EventCallback<Args...> callback) : callback(callback), wrapper(wrapper) {}
-
-			static void wrapper(void* callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader)
-			{
-				std::tuple<Args...> args{};
-				wrapperImpl<std::make_index_sequence<std::tuple_size_v<std::tuple<Args...>>>>(callback, player, reader, args);
-			}
-
-			template<std::size_t... I>
-			static void wrapperImpl(void* callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<Args...> args)
-			{
-				reader(&std::get<I>(args)...);
-				static_cast<EventCallback<Args...>>(callback)(player, std::get<I>(args)...);
-			}
-		};
+		template<class T, class... Args>
+		void RegisterEventCallback(uint8 eventCode, EventCallbackType<T, Args...> callback);
 
 	protected:
 
@@ -834,6 +811,7 @@ namespace s3d
 		/// @brief Verbose モード (Print による詳細なデバッグ出力をする場合 true)
 		bool m_verbose = true;
 
+		HashTable<uint8, detail::CustomEventReceiver> table;
 	private:
 
 		class PhotonDetail;
@@ -848,14 +826,34 @@ namespace s3d
 
 		Optional<String> m_requestedRegion;
 
-		HashTable<uint8, EventCallbackRegistryBase> table;
-		
+
 		bool m_isActive = false;
 	};
 
-	template<class ...Args>
-	inline void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, EventCallback<Args...> callback)
+	namespace detail
 	{
-		table[eventCode] = EventCallbackRegistry(callback);
+		template<class T, class... Args>
+		struct WrapperImpl
+		{
+			static void wrapper(Multiplayer_Photon& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader)
+			{
+				std::tuple<std::remove_cvref_t<Args>...> args{};
+				impl(static_cast<T&>(client), callback, player, reader, args, std::make_index_sequence<std::tuple_size_v<std::tuple<Args...>>>());
+			}
+
+			template<std::size_t... I>
+			static void impl(T& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<std::remove_cvref_t<Args>...> args, std::integer_sequence<size_t, I...>)
+			{
+				reader(std::get<I>(args)...);
+				(client.*reinterpret_cast<Multiplayer_Photon::EventCallbackType<T, Args...>>(callback))(player, static_cast<std::tuple_element_t<I, std::tuple<Args...>>>(std::get<I>(args))...);
+			}
+		};
+	}
+
+	template<class T, class ...Args>
+	void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
+	{
+
+		table[eventCode] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
 	}
 }

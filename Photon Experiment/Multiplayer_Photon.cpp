@@ -373,7 +373,8 @@ namespace s3d
 							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
 							Deserializer<MemoryViewReader> reader{ values, length };
 							if (m_context.table.contains(eventCode)) {
-								m_context.table[eventCode](playerID, reader);
+								auto& receiver = m_context.table[eventCode];
+								(receiver.second)(m_context, receiver.first, playerID, reader);
 							}
 							else {
 								m_context.customEventAction(playerID, eventCode, reader);
@@ -563,7 +564,7 @@ namespace s3d
 			return 0;
 		}
 
-		return static_cast<uint32>(m_client->getServerTime());
+		return m_client->getServerTime();
 	}
 
 	int32 Multiplayer_Photon::getServerTimeOffsetMillisec() const
@@ -573,7 +574,7 @@ namespace s3d
 			return 0;
 		}
 
-		return static_cast<uint32>(m_client->getServerTimeOffset());
+		return m_client->getServerTimeOffset();
 	}
 
 	int32 Multiplayer_Photon::getPingMillisec() const
