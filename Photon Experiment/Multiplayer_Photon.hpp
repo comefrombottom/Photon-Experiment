@@ -811,7 +811,6 @@ namespace s3d
 		/// @brief Verbose モード (Print による詳細なデバッグ出力をする場合 true)
 		bool m_verbose = true;
 
-		HashTable<uint8, detail::CustomEventReceiver> table;
 	private:
 
 		class PhotonDetail;
@@ -826,6 +825,7 @@ namespace s3d
 
 		Optional<String> m_requestedRegion;
 
+		HashTable<uint8, detail::CustomEventReceiver> table;
 
 		bool m_isActive = false;
 	};
