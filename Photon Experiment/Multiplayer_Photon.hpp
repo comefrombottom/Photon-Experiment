@@ -78,6 +78,78 @@ namespace s3d
 		using CustomEventReceiver = std::pair<TypeErasedCallback, CallbackWrapper>;
 	}
 
+	/// @brief ターゲット指定オプション。キャッシュを利用すると以降に入室するプレイヤーにも送信されます。
+	enum class EventReceiverOption : uint8
+	{
+		/// @brief 自分以外のプレイヤーに送信
+		Others,
+
+		/// @brief 自分以外のプレイヤーに送信。送信者が部屋を離れるまでキャッシュされます。
+		Ohters_CacheUntilLeaveRoom,
+
+		/// @brief 自分以外のプレイヤーに送信。永続的にキャッシュされます。
+		Others_CacheForever,
+
+		/// @brief 全員に送信
+		All,
+
+		/// @brief 全員に送信。送信者が部屋を離れるまでキャッシュされます。
+		All_CacheUntilLeaveRoom,
+
+		/// @brief 全員に送信。永続的にキャッシュされます。
+		All_CacheForever,
+
+		/// @brief ホストに送信
+		Host,
+	};
+
+	/// @brief 送信するイベントの情報
+	class MultiplayerEvent
+	{
+	public:
+		[[nodiscard]]
+		MultiplayerEvent() = default;
+
+		/// @brief 送信するイベントの情報を作成します。
+		/// @param eventCode イベントコード (1~199)
+		/// @param receiverOption ターゲット指定オプション
+		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		[[nodiscard]]
+		explicit MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption = EventReceiverOption::Others, uint8 priorityIndex = 0);
+
+		/// @brief 送信するイベントの情報を作成します。
+		/// @param eventCode イベントコード (1~199)
+		/// @param targetList ターゲットリスト
+		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		[[nodiscard]]
+		MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
+
+		/// @brief 送信するイベントの情報を作成します。
+		/// @param eventCode イベントコード (1~199)
+		/// @param targetGroup ターゲットグループ (1以上255以下の整数)
+		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		[[nodiscard]]
+		MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex = 0);
+
+	private:
+		/// @brief イベントコード (1~199)
+		uint8 m_eventCode = 0;
+
+		/// @brief プライオリティインデックス　0に近いほど優先的に処理される
+		uint8 m_priorityIndex = 0;
+
+		/// @brief ターゲットグループ (1以上255以下の整数)
+		uint8 m_targetGroup = 0;
+
+		/// @brief ターゲット指定オプション
+		EventReceiverOption m_receiverOption = EventReceiverOption::Others;
+
+		/// @brief ターゲットリスト
+		Optional<Array<LocalPlayerID>> m_targetList;
+
+		friend class Multiplayer_Photon;
+	};
+
 	/// @brief マルチプレイヤー用クラス (Photon バックエンド)
 	class Multiplayer_Photon
 	{
@@ -411,11 +483,19 @@ namespace s3d
 		/// @remark ユーザ定義型を送信する際に利用します。
 		void sendEvent(uint8 eventCode, const Serializer<MemoryWriter>& writer, const Optional<Array<LocalPlayerID>>& targets = unspecified);
 
-		template<class... Args>
+		/*template<class... Args>
 		void sendEvent(uint8 eventCode, const Optional<Array<LocalPlayerID>>& targets = unspecified, Args... args)
 		{
 			sendEvent(eventCode, Serializer<MemoryWriter>{}(args...), targets);
+		}*/
+
+		template<class... Args>
+		void sendEvent(const MultiplayerEvent& event, Args... args)
+		{
+			sendEventImpl(event, Serializer<MemoryWriter>{}(args...));
 		}
+
+		void sendEventImpl(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
 
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名

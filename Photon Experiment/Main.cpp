@@ -364,7 +364,7 @@ void Main()
 			
 
 			Print << U"eventCode: 111 を送信 >>>";
-			network.sendEvent(111, unspecified, int32(1), 2.2, Vec2(3, 3));
+			network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
 		}
 	}
 }

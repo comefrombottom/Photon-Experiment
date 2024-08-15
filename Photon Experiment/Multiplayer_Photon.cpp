@@ -479,6 +479,30 @@ namespace s3d
 	};
 }
 
+namespace s3d {
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
+		: m_eventCode(eventCode)
+		, m_receiverOption(receiverOption)
+		, m_priorityIndex(priorityIndex)
+	{
+	}
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
+		: m_eventCode(eventCode)
+		, m_targetList(targetList)
+		, m_priorityIndex(priorityIndex)
+	{
+	}
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex)
+		: m_eventCode(eventCode)
+		, m_targetGroup(targetGroup)
+		, m_priorityIndex(priorityIndex)
+	{
+	}
+}
+
 namespace s3d
 {
 	Multiplayer_Photon::Multiplayer_Photon(const std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose)
@@ -1137,6 +1161,59 @@ namespace s3d
 		ev.put(L"Type", L"Blob");
 		ev.put(L"values", src, static_cast<int16>(size));
 		m_client->opRaiseEvent(Reliable, ev, eventCode, detail::MakeRaiseEventOptions(targets));
+	}
+
+	void Multiplayer_Photon::sendEventImpl(const MultiplayerEvent& eventInfo, const Serializer<MemoryWriter>& writer)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		const auto& blob = writer->getBlob();
+		const uint8* src = static_cast<const uint8*>(static_cast<const void*>(blob.data()));
+		const size_t size = blob.size();
+
+		ExitGames::Common::Hashtable ev;
+		ev.put(L"Type", L"Blob");
+		ev.put(L"values", src, static_cast<int16>(size));
+
+		uint8 receiver = ExitGames::Lite::ReceiverGroup::OTHERS;
+		uint8 caching = ExitGames::Lite::EventCache::DO_NOT_CACHE;
+
+		switch (eventInfo.m_receiverOption)
+		{
+		case EventReceiverOption::Others:
+			break;
+		case EventReceiverOption::Ohters_CacheUntilLeaveRoom:
+			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
+			break;
+		case EventReceiverOption::Others_CacheForever:
+			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
+			break;
+		case EventReceiverOption::All:
+			receiver = ExitGames::Lite::ReceiverGroup::ALL;
+			break;
+		case EventReceiverOption::All_CacheUntilLeaveRoom:
+			receiver = ExitGames::Lite::ReceiverGroup::ALL;
+			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
+			break;
+		case EventReceiverOption::All_CacheForever:
+			receiver = ExitGames::Lite::ReceiverGroup::ALL;
+			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
+			break;
+		case EventReceiverOption::Host:
+			receiver = ExitGames::Lite::ReceiverGroup::MASTER_CLIENT;
+			break;
+		}
+
+		const auto eventOptions = detail::MakeRaiseEventOptions(eventInfo.m_targetList)
+			.setChannelID(eventInfo.m_priorityIndex)
+			.setInterestGroup(eventInfo.m_targetGroup)
+			.setReceiverGroup(receiver)
+			.setEventCaching(caching);
+
+		m_client->opRaiseEvent(Reliable, ev, eventInfo.m_eventCode, eventOptions);
 	}
 
 	String Multiplayer_Photon::getUserName() const
