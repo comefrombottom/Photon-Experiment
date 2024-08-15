@@ -1226,6 +1226,16 @@ namespace s3d
 		return detail::ToString(m_client->getLocalPlayer().getName());
 	}
 
+	void Multiplayer_Photon::setUserName(StringView userName)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		m_client->getLocalPlayer().setName(detail::ToJString(userName));
+	}
+
 	String Multiplayer_Photon::getUserID() const
 	{
 		if (not m_client)

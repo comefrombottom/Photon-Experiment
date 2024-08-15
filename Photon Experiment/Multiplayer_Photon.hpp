@@ -502,6 +502,8 @@ namespace s3d
 		[[nodiscard]]
 		String getUserName() const;
 
+		void setUserName(StringView userName);
+
 		/// @brief 自動生成された自身のユーザ ID を取得します。
 		/// @return 自身のユーザ ID
 		[[nodiscard]]
