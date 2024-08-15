@@ -1176,6 +1176,23 @@ namespace s3d
 		return localPlayerID;
 	}
 
+	LocalPlayerID Multiplayer_Photon::getHostLocalPlayerID() const
+	{
+		if (not m_client)
+		{
+			return -1;
+		}
+
+		const LocalPlayerID hostID = m_client->getCurrentlyJoinedRoom().getMasterClientID();
+
+		if (hostID < 0)
+		{
+			return -1;
+		}
+
+		return hostID;
+	}
+
 	Array<RoomName> Multiplayer_Photon::getRoomNameList() const
 	{
 		if (not m_client)

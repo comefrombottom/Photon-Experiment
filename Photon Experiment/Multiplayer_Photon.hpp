@@ -432,6 +432,11 @@ namespace s3d
 		[[nodiscard]]
 		LocalPlayerID getLocalPlayerID() const;
 
+		/// @brief ルーム内のホストのプレイヤー ID を返します。
+		/// @return ルーム内のホストのプレイヤー ID, ルームに参加していない場合は -1
+		[[nodiscard]]
+		LocalPlayerID getHostLocalPlayerID() const;
+
 		/// @brief 存在するルームの一覧を返します。
 		/// @return 存在するルームの一覧
 		[[nodiscard]]
