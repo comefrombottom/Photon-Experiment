@@ -1534,6 +1534,117 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().setIsVisible(isVisible);
 	}
 
+	Optional<String> Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
+	{
+		if (not m_client)
+		{
+			return none;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return none;
+		}
+
+		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+
+		if (not player)
+		{
+			return none;
+		}
+
+		const auto& properties = player->getCustomProperties();
+
+		if (not properties.contains(detail::ToJString(key)))
+		{
+			return none;
+		}
+
+		return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(properties.getValue(detail::ToJString(key))).getDataCopy());
+	}
+
+	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		m_client->getLocalPlayer().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
+	}
+
+	void Multiplayer_Photon::removePlayerProperty(StringView key)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
+	}
+
+	Optional<String> Multiplayer_Photon::getRoomProperty(StringView key) const
+	{
+		if (not m_client)
+		{
+			return none;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return none;
+		}
+
+		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
+
+		if (not properties.contains(detail::ToJString(key)))
+		{
+			return none;
+		}
+
+		return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(properties.getValue(detail::ToJString(key))).getDataCopy());
+	}
+
+	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
+	}
+
+	void Multiplayer_Photon::removeRoomProperty(StringView key)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
+	}
+
 	int32 Multiplayer_Photon::getCountGamesRunning() const
 	{
 		if (not m_client)

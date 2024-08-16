@@ -597,6 +597,33 @@ namespace s3d
 		/// @param isVisible ルームを見えるようにする場合 true, それ以外の場合は false
 		void setIsVisibleInCurrentRoom(bool isVisible);
 
+		/// @brief プレイヤープロパティを取得します。
+		/// @param localPlayerID ルーム内のローカルプレイヤー ID
+		/// @param key キー
+		Optional<String> getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
+
+		/// @brief 自身のプレイヤープロパティを設定します。
+		/// @param key キー
+		/// @param value 値
+		void setPlayerProperty(StringView key, StringView value);
+
+		/// @brief 自身のプレイヤープロパティを削除します。
+		/// @param key キー
+		void removePlayerProperty(StringView key);
+
+		/// @brief ルームプロパティを取得します。
+		/// @param key キー
+		Optional<String> getRoomProperty(StringView key) const;
+
+		/// @brief ルームプロパティを設定します。
+		/// @param key キー
+		/// @param value 値
+		void setRoomProperty(StringView key, StringView value);
+
+		/// @brief ルームプロパティを削除します。
+		/// @param key キー
+		void removeRoomProperty(StringView key);
+
 		/// @brief ルームの数を返します。
 		/// @return ルームの数
 		[[nodiscard]]

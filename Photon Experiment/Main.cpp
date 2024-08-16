@@ -27,7 +27,7 @@ public:
 
 	void initResister() {
 		// シリアライズデータを受信したときに呼ばれる関数を登録する
-		RegisterEventCallback(111, &MyNetwork::castumDataReceive111);
+		RegisterEventCallback(111, &MyNetwork::customDataReceive111);
 	}
 
 private:
@@ -36,7 +36,7 @@ private:
 
 	
 
-	void castumDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
+	void customDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
 		Print << U"<<< 111を受信:{},{},{}"_fmt(i, d, v);
 	}
 
@@ -365,6 +365,24 @@ void Main()
 
 			Print << U"eventCode: 111 を送信 >>>";
 			network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
+		}
+
+		if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, 460 }, 200, network.isInRoom()))
+		{
+			Print << U"setPropaty";
+			network.setPlayerProperty(U"key", U"value");
+		}
+
+		if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, 500 }, 200, network.isInRoom()))
+		{
+			Print << U"getPropaty";
+			Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
+		}
+
+		if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, 540 }, 200, network.isInRoom()))
+		{
+			Print << U"removePropaty";
+			network.removePlayerProperty(U"key");
 		}
 	}
 }
