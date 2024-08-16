@@ -600,7 +600,7 @@ namespace s3d
 		/// @brief プレイヤープロパティを取得します。
 		/// @param localPlayerID ルーム内のローカルプレイヤー ID
 		/// @param key キー
-		Optional<String> getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
+		String getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
 
 		/// @brief 自身のプレイヤープロパティを設定します。
 		/// @param key キー
@@ -613,7 +613,7 @@ namespace s3d
 
 		/// @brief ルームプロパティを取得します。
 		/// @param key キー
-		Optional<String> getRoomProperty(StringView key) const;
+		String getRoomProperty(StringView key) const;
 
 		/// @brief ルームプロパティを設定します。
 		/// @param key キー

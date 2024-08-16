@@ -1534,33 +1534,32 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().setIsVisible(isVisible);
 	}
 
-	Optional<String> Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
+	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
 	{
 		if (not m_client)
 		{
-			return none;
+			return {};
 		}
 
 		if (not m_client->getIsInGameRoom())
 		{
-			return none;
+			return {};
 		}
 
 		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
 		if (not player)
 		{
-			return none;
+			return {};
 		}
 
 		const auto& properties = player->getCustomProperties();
 
-		if (not properties.contains(detail::ToJString(key)))
-		{
-			return none;
+		if (auto object = properties.getValue(detail::ToJString(key))) {
+			return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(object).getDataCopy());
 		}
 
-		return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(properties.getValue(detail::ToJString(key))).getDataCopy());
+		return {};
 	}
 
 	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
@@ -1593,26 +1592,25 @@ namespace s3d
 		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
 	}
 
-	Optional<String> Multiplayer_Photon::getRoomProperty(StringView key) const
+	String Multiplayer_Photon::getRoomProperty(StringView key) const
 	{
 		if (not m_client)
 		{
-			return none;
+			return {};
 		}
 
 		if (not m_client->getIsInGameRoom())
 		{
-			return none;
+			return {};
 		}
 
 		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
 
-		if (not properties.contains(detail::ToJString(key)))
-		{
-			return none;
+		if (auto object = properties.getValue(detail::ToJString(key))) {
+			return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(object).getDataCopy());
 		}
 
-		return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(properties.getValue(detail::ToJString(key))).getDataCopy());
+		return {};
 	}
 
 	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)

@@ -370,19 +370,22 @@ void Main()
 		if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, 460 }, 200, network.isInRoom()))
 		{
 			Print << U"setPropaty";
-			network.setPlayerProperty(U"key", U"value");
+			//network.setPlayerProperty(U"key", U"value");
+			network.setRoomProperty(U"key", U"value");
 		}
 
 		if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, 500 }, 200, network.isInRoom()))
 		{
 			Print << U"getPropaty";
-			Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
+			//Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
+			Print << network.getRoomProperty(U"key");
 		}
 
 		if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, 540 }, 200, network.isInRoom()))
 		{
 			Print << U"removePropaty";
-			network.removePlayerProperty(U"key");
+			//network.removePlayerProperty(U"key");
+			network.removeRoomProperty(U"key");
 		}
 	}
 }
