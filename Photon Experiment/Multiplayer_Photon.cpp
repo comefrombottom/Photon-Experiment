@@ -716,6 +716,38 @@ namespace s3d
 		constexpr bool willComeBack = false;
 		m_client->opLeaveRoom(willComeBack);
 	}
+
+	void Multiplayer_Photon::joinEventTargetGroup(uint8 targetGroup)
+	{
+		joinEventTargetGroup(Array<uint8>{ targetGroup });
+	}
+
+	void Multiplayer_Photon::joinEventTargetGroup(const Array<uint8>& targetGroups)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		auto joinGroups = ExitGames::Common::JVector<nByte>(targetGroups.data(), static_cast<uint32>(targetGroups.size()));
+		m_client->opChangeGroups({}, &joinGroups);
+	}
+
+	void Multiplayer_Photon::leaveEventTargetGroup(const uint8 targetGroup)
+	{
+		leaveEventTargetGroup(Array<uint8>{ targetGroup });
+	}
+
+	void Multiplayer_Photon::leaveEventTargetGroup(const Array<uint8>& targetGroups)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		auto leaveGroups = ExitGames::Common::JVector<nByte>(targetGroups.data(), static_cast<uint32>(targetGroups.size()));
+		m_client->opChangeGroups(&leaveGroups, {});
+	}
 }
 
 namespace s3d

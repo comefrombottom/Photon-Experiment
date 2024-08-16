@@ -254,6 +254,22 @@ namespace s3d
 		/// @brief ルームからの退出を試みます。
 		void leaveRoom();
 
+		/// @brief 指定したイベントターゲットグループに参加します。
+		/// @param targetGroup ターゲットグループ　(1以上255以下の整数)
+		void joinEventTargetGroup(const uint8 targetGroup);
+
+		/// @brief 指定したイベントターゲットグループに参加します。
+		/// @param targetGroups ターゲットグループの配列　(1以上255以下の整数)
+		void joinEventTargetGroup(const Array<uint8>& targetGroups);
+
+		/// @brief 指定したイベントターゲットグループから退出します。
+		/// @param targetGroup ターゲットグループ　(1以上255以下の整数)
+		void leaveEventTargetGroup(const uint8 targetGroup);
+
+		/// @brief 指定したイベントターゲットグループから退出します。
+		/// @param targetGroups ターゲットグループの配列　(1以上255以下の整数)
+		void leaveEventTargetGroup(const Array<uint8>& targetGroups);
+
 		/// @brief ルームにイベントを送信します。
 		/// @param eventCode イベントコード
 		/// @param value 送信するデータ
