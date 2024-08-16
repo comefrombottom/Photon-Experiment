@@ -786,6 +786,30 @@ namespace s3d
 
 			return options;
 		}
+
+		[[nodiscard]]
+		static ExitGames::Common::JString ObjectToJString(const ExitGames::Common::Object& obj)
+		{
+			return ExitGames::Common::ValueObject<ExitGames::Common::JString>(obj).getDataCopy();
+		}
+
+		[[nodiscard]]
+		static HashTable<String,String> MakeStringHashTable(const ExitGames::Common::Hashtable& data)
+		{
+			HashTable<String, String> result;
+
+			const auto& keys = data.getKeys();
+
+			for (uint32 i = 0; i < keys.getSize(); ++i)
+			{
+				const ExitGames::Common::JString key = ObjectToJString(keys[i]);
+				const ExitGames::Common::JString value = ObjectToJString(*data.getValue(key));
+				result[detail::ToString(key)] = detail::ToString(value);
+			}
+
+			return result;
+		}
+
 	}
 
 	void Multiplayer_Photon::sendEvent(const uint8 eventCode, const bool value, const Optional<Array<LocalPlayerID>>& targets)
@@ -1331,6 +1355,36 @@ namespace s3d
 		return results;
 	}
 
+	Array<RoomInfo> Multiplayer_Photon::getRoomInfoList() const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		const auto& roomList = m_client->getRoomList();
+
+		Array<RoomInfo> results(roomList.getSize());
+
+		for (uint32 i = 0; i < roomList.getSize(); ++i)
+		{
+			const auto& room = roomList[i];
+
+			RoomInfo roomInfo
+			{
+				.name		= detail::ToString(room->getName()),
+				.playerCount	= room->getPlayerCount(),
+				.maxPlayers		= room->getMaxPlayers(),
+				.isOpen			= room->getIsOpen(),
+				.properties		= detail::MakeStringHashTable(room->getCustomProperties()),
+			};
+
+			results[i] = std::move(roomInfo);
+		}
+
+		return results;
+	}
+
 	bool Multiplayer_Photon::isInLobby() const
 	{
 		if (not m_client)
@@ -1402,6 +1456,8 @@ namespace s3d
 		case Disconnecting:
 		case Disconnected:
 			return NetworkState::Disconnecting;
+		default:
+			return NetworkState::Disconnected;
 		}
 	}
 
@@ -1556,7 +1612,7 @@ namespace s3d
 		const auto& properties = player->getCustomProperties();
 
 		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(object).getDataCopy());
+			return detail::ToString(detail::ObjectToJString(*object));
 		}
 
 		return {};
@@ -1607,7 +1663,7 @@ namespace s3d
 		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
 
 		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(ExitGames::Common::ValueObject<ExitGames::Common::JString>(object).getDataCopy());
+			return detail::ToString(detail::ObjectToJString(*object));
 		}
 
 		return {};
@@ -1641,6 +1697,52 @@ namespace s3d
 		}
 
 		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
+	}
+
+	Array<String> Multiplayer_Photon::getVisibleRoomPropertyKeys() const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& keys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
+
+		Array<String> results(keys.getSize());
+
+		for (uint32 i = 0; i < keys.getSize(); ++i)
+		{
+			results[i] = detail::ToString(keys[i]);
+		}
+
+		return results;
+	}
+
+	void Multiplayer_Photon::setVisibleRoomPropertyKeys(const Array<String>& keys)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		ExitGames::Common::JVector<ExitGames::Common::JString> jKeys(static_cast<uint32>(keys.size()));
+
+		for (uint32 i = 0; i < static_cast<uint32>(keys.size()); ++i)
+		{
+			jKeys.addElement(detail::ToJString(keys[i]));
+		}
+
+		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
 	}
 
 	int32 Multiplayer_Photon::getCountGamesRunning() const

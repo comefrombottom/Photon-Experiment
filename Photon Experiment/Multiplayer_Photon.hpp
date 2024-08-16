@@ -68,6 +68,25 @@ namespace s3d
 		bool isActive = false;
 	};
 
+	/// @brief ロビーから参照可能なルームの情報
+	struct RoomInfo
+	{
+		/// @brief ルーム名
+		RoomName name;
+
+		/// @brief ルームの現在の人数
+		int32 playerCount = 0;
+
+		/// @brief ルームの最大人数
+		int32 maxPlayers = 0;
+
+		/// @brief ルームに他のプレイヤーが参加できるか
+		bool isOpen = false;
+
+		// @brief ロビーから参照可能なルームプロパティ
+		HashTable<String, String> properties;
+	};
+
 	class Multiplayer_Photon;
 
 	namespace detail
@@ -535,10 +554,15 @@ namespace s3d
 		[[nodiscard]]
 		LocalPlayerID getHostLocalPlayerID() const;
 
-		/// @brief 存在するルームの一覧を返します。
-		/// @return 存在するルームの一覧
+		/// @brief 存在するルームの名前一覧を返します。
+		/// @return 存在するルームの名前一覧
 		[[nodiscard]]
 		Array<RoomName> getRoomNameList() const;
+
+		/// @brief 存在するルームの情報一覧を返します。
+		/// @return 存在するルームの情報一覧
+		[[nodiscard]]
+		Array<RoomInfo> getRoomInfoList() const;
 
 		/// @brief 自分がロビーにいるかを返します。
 		/// @return ロビーにいる場合 true, それ以外の場合は false
@@ -623,6 +647,14 @@ namespace s3d
 		/// @brief ルームプロパティを削除します。
 		/// @param key キー
 		void removeRoomProperty(StringView key);
+
+		/// @brief ロビーから参照可能なルームプロパティのキーリストを返します。
+		/// @return ロビーから参照可能なルームプロパティのキーリスト
+		Array<String> getVisibleRoomPropertyKeys() const;
+
+		/// @brief ロビーから参照可能なルームプロパティのキーリストを設定します。
+		/// @param keys キーリスト
+		void setVisibleRoomPropertyKeys(const Array<String>& keys);
 
 		/// @brief ルームの数を返します。
 		/// @return ルームの数

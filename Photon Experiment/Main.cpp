@@ -66,6 +66,19 @@ private:
 		}
 
 		Scene::SetBackground(ColorF{ 0.4, 0.5, 0.6 });
+
+		Print << U"isInLobby:" << isInLobby();
+
+		Print << getRoomNameList();
+
+		for(const auto& room : getRoomInfoList())
+		{
+			Print << U"RoomName:" << room.name;
+			for(const auto& prop : room.properties)
+			{
+				Print << U"RoomProp:" << prop.first << U":" << prop.second;
+			}
+		}
 	}
 
 	void disconnectReturn() override
@@ -159,6 +172,20 @@ private:
 			{
 				Print << U"- [{}] {} (id: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
 			}
+		}
+
+		if (isSelf)
+		{
+			// 自分がルームに参加したときの処理
+			Print << U"visibleProp:" << getVisibleRoomPropertyKeys();
+			setRoomProperty(U"key", U"value");
+			setRoomProperty(U"key2", U"value2");
+			setVisibleRoomPropertyKeys({ U"key2" });
+			Print << U"visibleProp:" << getVisibleRoomPropertyKeys();
+		}
+		else
+		{
+			// 他のプレイヤーがルームに参加したときの処理
 		}
 	}
 
@@ -386,6 +413,20 @@ void Main()
 			Print << U"removePropaty";
 			//network.removePlayerProperty(U"key");
 			network.removeRoomProperty(U"key");
+		}
+
+		if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, 580 }, 200, network.isInLobby()))
+		{
+			Print << U"getRoomList";
+			Print << network.getRoomNameList();
+			for (const auto& room : network.getRoomInfoList())
+			{
+				Print << U"RoomName:" << room.name;
+				for (const auto& prop : room.properties)
+				{
+					Print << U"RoomProp:" << prop.first << U":" << prop.second;
+				}
+			}
 		}
 	}
 }
