@@ -35,6 +35,68 @@ namespace s3d
 		{
 			return ExitGames::Common::JString{ Unicode::ToWstring(s).c_str() };
 		}
+
+		[[nodiscard]]
+		static ExitGames::Common::JString ObjectToJString(const ExitGames::Common::Object& obj)
+		{
+			return ExitGames::Common::ValueObject<ExitGames::Common::JString>(obj).getDataCopy();
+		}
+
+		[[nodiscard]]
+		static HashTable<String, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
+		{
+			HashTable<String, String> result;
+
+			const auto& keys = data.getKeys();
+
+			for (uint32 i = 0; i < keys.getSize(); ++i)
+			{
+				const ExitGames::Common::JString key = ObjectToJString(keys[i]);
+				const ExitGames::Common::JString value = ObjectToJString(*data.getValue(key));
+				result[detail::ToString(key)] = detail::ToString(value);
+			}
+
+			return result;
+		}
+
+		[[nodiscard]]
+		static ExitGames::Common::Hashtable ToPhotonHashtable(const HashTable<String, String>& table)
+		{
+			ExitGames::Common::Hashtable result;
+
+			for (const auto& [key, value] : table)
+			{
+				result.put(ToJString(key), ToJString(value));
+			}
+
+			return result;
+		}
+
+		[[nodiscard]]
+		static Array<String> ToStringArray(const ExitGames::Common::JVector<ExitGames::Common::JString>& data)
+		{
+			Array<String> result(data.getSize());
+
+			for (uint32 i = 0; i < data.getSize(); ++i)
+			{
+				result[i] = ToString(data[i]);
+			}
+
+			return result;
+		}
+
+		[[nodiscard]]
+		static ExitGames::Common::JVector<ExitGames::Common::JString> ToJStringJVector(const Array<String>& data)
+		{
+			ExitGames::Common::JVector<ExitGames::Common::JString> result(data.size());
+
+			for (size_t i = 0; i < data.size(); ++i)
+			{
+				result.addElement(ToJString(data[i]));
+			}
+
+			return result;
+		}
 	}
 
 	template <class Type, uint8 customTypeIndex>
@@ -480,6 +542,105 @@ namespace s3d
 }
 
 namespace s3d {
+	RoomCreateOption::RoomCreateOption(int32 maxPlayers, bool isVisible, bool isOpen, const HashTable<String, String>& properties, const Array<String>& visibleRoomPropertyKeys, int32 reconnectableGraceMilliseconds, int32 emptyRoomLifeMilliseconds, bool publishUserId)
+		: m_maxPlayers(maxPlayers)
+		, m_isVisible(isVisible)
+		, m_isOpen(isOpen)
+		, m_properties(properties)
+		, m_visibleRoomPropertyKeys(visibleRoomPropertyKeys)
+		, m_reconnectableGraceMilliseconds(reconnectableGraceMilliseconds)
+		, m_emptyRoomLifeMilliseconds(emptyRoomLifeMilliseconds)
+		, m_publishUserId(publishUserId)
+	{
+	}
+
+	bool RoomCreateOption::isVisible() const
+	{
+		return m_isVisible;
+	}
+
+	bool RoomCreateOption::isOpen() const
+	{
+		return m_isOpen;
+	}
+
+	bool RoomCreateOption::publishUserId() const
+	{
+		return m_publishUserId;
+	}
+
+	int32 RoomCreateOption::maxPlayers() const
+	{
+		return m_maxPlayers;
+	}
+
+	const HashTable<String, String>& RoomCreateOption::properties() const
+	{
+		return m_properties;
+	}
+
+	const Array<String>& RoomCreateOption::visibleRoomPropertyKeys() const
+	{
+		return m_visibleRoomPropertyKeys;
+	}
+
+	int32 RoomCreateOption::reconnectableGraceMilliseconds() const
+	{
+		return m_reconnectableGraceMilliseconds;
+	}
+
+	int32 RoomCreateOption::emptyRoomLifeMilliseconds() const
+	{
+		return m_emptyRoomLifeMilliseconds;
+	}
+
+	RoomCreateOption& RoomCreateOption::setIsVisible(bool isVisible)
+	{
+		m_isVisible = isVisible;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setIsOpen(bool isOpen)
+	{
+		m_isOpen = isOpen;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setPublishUserId(bool publishUserId)
+	{
+		m_publishUserId = publishUserId;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setMaxPlayers(int32 maxPlayers)
+	{
+		m_maxPlayers = maxPlayers;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setProperties(const HashTable<String, String>& properties)
+	{
+		m_properties = properties;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setVisibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys)
+	{
+		m_visibleRoomPropertyKeys = visibleRoomPropertyKeys;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setReconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds)
+	{
+		m_reconnectableGraceMilliseconds = reconnectableGraceMilliseconds;
+		return *this;
+	}
+
+	RoomCreateOption& RoomCreateOption::setEmptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds)
+	{
+		m_emptyRoomLifeMilliseconds = emptyRoomLifeMilliseconds;
+		return *this;
+	}
 
 	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
 		: m_eventCode(eventCode)
@@ -706,6 +867,31 @@ namespace s3d
 		m_client->opCreateRoom(detail::ToJString(roomName), roomOption);
 	}
 
+	void Multiplayer_Photon::createRoom(RoomNameView roomName, const RoomCreateOption& option)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not InRange(option.m_maxPlayers, 0, 255))
+		{
+			return;
+		}
+
+		const auto roomOption = ExitGames::LoadBalancing::RoomOptions()
+			.setMaxPlayers(static_cast<uint8>(option.m_maxPlayers))
+			.setIsVisible(option.m_isVisible)
+			.setIsOpen(option.m_isOpen)
+			.setCustomRoomProperties(detail::ToPhotonHashtable(option.properties()))
+			.setPropsListedInLobby(detail::ToJStringJVector(option.visibleRoomPropertyKeys()))
+			.setEmptyRoomTtl(option.emptyRoomLifeMilliseconds())
+			.setPlayerTtl(option.reconnectableGraceMilliseconds())
+			.setPublishUserID(option.publishUserId());
+
+		m_client->opCreateRoom(detail::ToJString(roomName), roomOption);
+	}
+
 	void Multiplayer_Photon::leaveRoom()
 	{
 		if (not m_client)
@@ -786,30 +972,6 @@ namespace s3d
 
 			return options;
 		}
-
-		[[nodiscard]]
-		static ExitGames::Common::JString ObjectToJString(const ExitGames::Common::Object& obj)
-		{
-			return ExitGames::Common::ValueObject<ExitGames::Common::JString>(obj).getDataCopy();
-		}
-
-		[[nodiscard]]
-		static HashTable<String,String> MakeStringHashTable(const ExitGames::Common::Hashtable& data)
-		{
-			HashTable<String, String> result;
-
-			const auto& keys = data.getKeys();
-
-			for (uint32 i = 0; i < keys.getSize(); ++i)
-			{
-				const ExitGames::Common::JString key = ObjectToJString(keys[i]);
-				const ExitGames::Common::JString value = ObjectToJString(*data.getValue(key));
-				result[detail::ToString(key)] = detail::ToString(value);
-			}
-
-			return result;
-		}
-
 	}
 
 	void Multiplayer_Photon::sendEvent(const uint8 eventCode, const bool value, const Optional<Array<LocalPlayerID>>& targets)
@@ -1376,7 +1538,7 @@ namespace s3d
 				.playerCount	= room->getPlayerCount(),
 				.maxPlayers		= room->getMaxPlayers(),
 				.isOpen			= room->getIsOpen(),
-				.properties		= detail::MakeStringHashTable(room->getCustomProperties()),
+				.properties		= detail::PhotonHashtableToStringHashTable(room->getCustomProperties()),
 			};
 
 			results[i] = std::move(roomInfo);
@@ -1735,12 +1897,7 @@ namespace s3d
 			return;
 		}
 
-		ExitGames::Common::JVector<ExitGames::Common::JString> jKeys(static_cast<uint32>(keys.size()));
-
-		for (uint32 i = 0; i < static_cast<uint32>(keys.size()); ++i)
-		{
-			jKeys.addElement(detail::ToJString(keys[i]));
-		}
+		auto jKeys = detail::ToJStringJVector(keys);
 
 		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
 	}

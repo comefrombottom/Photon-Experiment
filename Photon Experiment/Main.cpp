@@ -109,8 +109,11 @@ private:
 				Print << U"[参加可能なランダムなルームが見つからなかった]";
 				Print << U"[自分でルーム " << roomName << U" を新規作成する]";
 			}
-
-			createRoom(roomName);
+			HashTable<String, String> prop{
+				{U"a", U"b"},
+				{U"a2", U"b2"}
+			};
+			createRoom(roomName,RoomCreateOption().setProperties(prop));
 
 			return;
 		}
@@ -406,6 +409,8 @@ void Main()
 			Print << U"getPropaty";
 			//Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
 			Print << network.getRoomProperty(U"key");
+			Print << network.getRoomProperty(U"a");
+			Print << network.getRoomProperty(U"a2");
 		}
 
 		if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, 540 }, 200, network.isInRoom()))

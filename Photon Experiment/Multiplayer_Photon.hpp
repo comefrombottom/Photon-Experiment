@@ -97,6 +97,64 @@ namespace s3d
 		using CustomEventReceiver = std::pair<TypeErasedCallback, CallbackWrapper>;
 	}
 
+	class RoomCreateOption
+	{
+	public:
+		[[nodiscard]]
+		explicit RoomCreateOption(int32 maxPlayers = 0, bool isVisible = true, bool isOpen = true, const HashTable<String, String>& properties = {}, const Array<String>& visibleRoomPropertyKeys = {}, int32 reconnectableGraceMilliseconds = 0, int32 emptyRoomLifeMilliseconds = 0, bool publishUserId = true);
+
+		bool isVisible() const;
+
+		bool isOpen() const;
+
+		bool publishUserId() const;
+
+		int32 maxPlayers() const;
+
+		const HashTable<String, String>& properties() const;
+
+		const Array<String>& visibleRoomPropertyKeys() const;
+
+		int32 reconnectableGraceMilliseconds() const;
+
+		int32 emptyRoomLifeMilliseconds() const;
+
+		RoomCreateOption& setIsVisible(bool isVisible);
+
+		RoomCreateOption& setIsOpen(bool isOpen);
+
+		RoomCreateOption& setPublishUserId(bool publishUserId);
+
+		RoomCreateOption& setMaxPlayers(int32 maxPlayers);
+
+		RoomCreateOption& setProperties(const HashTable<String, String>& properties);
+
+		RoomCreateOption& setVisibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
+
+		RoomCreateOption& setReconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds);
+
+		RoomCreateOption& setEmptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds);
+
+	private:
+		bool m_isVisible = true;
+
+		bool m_isOpen = true;
+
+		bool m_publishUserId = true;
+
+		int32 m_maxPlayers = 0;
+
+		HashTable<String, String> m_properties;
+
+		Array<String> m_visibleRoomPropertyKeys;
+
+		int32 m_reconnectableGraceMilliseconds = 0;
+
+		int32 m_emptyRoomLifeMilliseconds = 0;
+
+		friend class Multiplayer_Photon;
+	};
+
 	/// @brief ターゲット指定オプション。キャッシュを利用すると以降に入室するプレイヤーにも送信されます。
 	enum class EventReceiverOption : uint8
 	{
@@ -269,6 +327,11 @@ namespace s3d
 		/// @param maxPlayers ルームの最大人数（0の場合は指定なし）
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
 		void createRoom(RoomNameView roomName, int32 maxPlayers = 0);
+
+		/// @brief ルームの作成を試みます。
+		/// @param roomName ルーム名
+		/// @param option ルーム作成オプション
+		void createRoom(RoomNameView roomName, const RoomCreateOption& option);
 
 		/// @brief ルームからの退出を試みます。
 		void leaveRoom();
