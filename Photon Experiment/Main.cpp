@@ -113,7 +113,7 @@ private:
 				{U"a", U"b"},
 				{U"a2", U"b2"}
 			};
-			createRoom(roomName,RoomCreateOption().setProperties(prop));
+			createRoom(roomName,RoomCreateOption().properties(prop));
 
 			return;
 		}

@@ -36,6 +36,7 @@ namespace ExitGames::LoadBalancing
 {
 	class Listener;
 	class Client;
+	class RoomOptions;
 }
 
 namespace s3d
@@ -89,6 +90,7 @@ namespace s3d
 
 	class Multiplayer_Photon;
 
+
 	namespace detail
 	{
 		using TypeErasedCallback = void(Multiplayer_Photon::*)();
@@ -101,39 +103,26 @@ namespace s3d
 	{
 	public:
 		[[nodiscard]]
-		explicit RoomCreateOption(int32 maxPlayers = 0, bool isVisible = true, bool isOpen = true, const HashTable<String, String>& properties = {}, const Array<String>& visibleRoomPropertyKeys = {}, int32 reconnectableGraceMilliseconds = 0, int32 emptyRoomLifeMilliseconds = 0, bool publishUserId = true);
+		RoomCreateOption() = default;
 
-		bool isVisible() const;
+		[[nodiscard]]
+		explicit RoomCreateOption(int32 maxPlayers, bool isVisible = true, bool isOpen = true, const HashTable<String, String>& properties = {}, const Array<String>& visibleRoomPropertyKeys = {}, int32 reconnectableGraceMilliseconds = 0, int32 emptyRoomLifeMilliseconds = 0, bool publishUserId = true);
 
-		bool isOpen() const;
+		RoomCreateOption& isVisible(bool isVisible);
 
-		bool publishUserId() const;
+		RoomCreateOption& isOpen(bool isOpen);
 
-		int32 maxPlayers() const;
+		RoomCreateOption& publishUserId(bool publishUserId);
 
-		const HashTable<String, String>& properties() const;
+		RoomCreateOption& maxPlayers(int32 maxPlayers);
 
-		const Array<String>& visibleRoomPropertyKeys() const;
+		RoomCreateOption& properties(const HashTable<String, String>& properties);
 
-		int32 reconnectableGraceMilliseconds() const;
+		RoomCreateOption& visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
 
-		int32 emptyRoomLifeMilliseconds() const;
+		RoomCreateOption& reconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds);
 
-		RoomCreateOption& setIsVisible(bool isVisible);
-
-		RoomCreateOption& setIsOpen(bool isOpen);
-
-		RoomCreateOption& setPublishUserId(bool publishUserId);
-
-		RoomCreateOption& setMaxPlayers(int32 maxPlayers);
-
-		RoomCreateOption& setProperties(const HashTable<String, String>& properties);
-
-		RoomCreateOption& setVisibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
-
-		RoomCreateOption& setReconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds);
-
-		RoomCreateOption& setEmptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds);
+		RoomCreateOption& emptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds);
 
 	private:
 		bool m_isVisible = true;
@@ -152,7 +141,16 @@ namespace s3d
 
 		int32 m_emptyRoomLifeMilliseconds = 0;
 
+		ExitGames::LoadBalancing::RoomOptions toRoomOptions() const;
+
 		friend class Multiplayer_Photon;
+	};
+
+	enum class MatchmakingMode : uint8
+	{
+		FillOldestRoom,
+		Serial,
+		Random,
 	};
 
 	/// @brief ターゲット指定オプション。キャッシュを利用すると以降に入室するプレイヤーにも送信されます。
@@ -305,18 +303,30 @@ namespace s3d
 
 		/// @brief ランダムなルームに参加を試みます。
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
+		/// @param matchmakingMode マッチメイキングモード
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void joinRandomRoom(int32 expectedMaxPlayers = 0);
+		void joinRandomRoom(int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+
+		/// @brief ランダムなルームに参加を試みます。
+		/// @param propertyFilter ルームプロパティのフィルタ
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
+		/// @param matchmakingMode マッチメイキングモード
+		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
+		void joinRandomRoom(const HashTable<String,String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
-		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）ルーム作成時の最大人数にも利用されます。
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param roomName ルーム名
+		[[deprecated("This overload has been deprecated. Use another overload instead.")]]
 		void joinRandomOrCreateRoom(int32 expectedMaxPlayers, RoomNameView roomName);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
-		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）ルーム作成時の最大人数にも利用されます。
 		/// @param roomName ルーム名
-		void joinRandomOrCreateRoom(RoomNameView roomName, int32 expectedMaxPlayers = 0);
+		/// @param roomCreateOption ルーム作成オプション
+		/// @param propertyFilter ルームプロパティのフィルタ
+		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
+		/// @param matchmakingMode マッチメイキングモード
+		void joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<String, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 指定したルームに参加を試みます。
 		/// @param roomName ルーム名
@@ -332,6 +342,11 @@ namespace s3d
 		/// @param roomName ルーム名
 		/// @param option ルーム作成オプション
 		void createRoom(RoomNameView roomName, const RoomCreateOption& option);
+
+		/// @brief 指定した名前のルームに参加を試み、無かった場合にルームの作成を試みます。
+		/// @param roomName ルーム名
+		/// @param option ルーム作成オプション
+		void joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
 
 		/// @brief ルームからの退出を試みます。
 		void leaveRoom();
