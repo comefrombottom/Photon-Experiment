@@ -832,10 +832,16 @@ namespace s3d
 		/// @param errorString エラー文字列
 		virtual void joinRandomOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
+		/// @brief ルームのリストが更新されたときに呼ばれます。
 		virtual void onRoomListUpdate();
 
+		/// @brief ルームのプロパティが変更されたときに呼ばれます。
+		/// @param changes 変更されたプロパティのキーと値
 		virtual void onRoomPropertiesChange(const HashTable<String,String>& changes);
 
+		/// @brief プレイヤーのプロパティが変更されたときに呼ばれます。
+		/// @param playerID 変更されたプレイヤーのローカルプレイヤー ID
+		/// @param changes 変更されたプロパティのキーと値
 		virtual void onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes);
 
 		/// @brief ルームのイベントを受信した際に呼ばれます。
