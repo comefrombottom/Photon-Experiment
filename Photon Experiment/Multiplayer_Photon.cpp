@@ -1441,7 +1441,7 @@ namespace s3d
 		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE));
 	}
 
-	void Multiplayer_Photon::removeEventCache(uint8 eventCode, Array<LocalPlayerID> targets)
+	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets)
 	{
 		if (not m_client)
 		{

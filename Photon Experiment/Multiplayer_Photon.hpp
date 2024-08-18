@@ -619,7 +619,7 @@ namespace s3d
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
 		/// @param targets 対象のプレイヤーのローカル ID
 		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
-		void removeEventCache(uint8 eventCode, Array<LocalPlayerID> targets);
+		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
 
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名
