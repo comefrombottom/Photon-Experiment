@@ -2,6 +2,162 @@
 # include "Multiplayer_Photon.hpp"
 # include "PHOTON_APP_ID.SECRET"
 
+
+struct ScrollBar
+{
+	RectF rect{};
+	Optional<double> dragOffset;
+
+	double viewHeight = 600;
+	double pageHeight = 1000;
+	double viewTop = 0;
+	double viewVelocity = 0;
+
+	double accumulateTime = 0;
+	static constexpr double stepTime = 1.0 / 200;
+	static constexpr double resistance = 10;
+
+	Transition sliderWidthTransition = Transition(0.1s, 0.1s);
+
+	ScrollBar() = default;
+
+	ScrollBar(const RectF& rect, double viewHeight, double pageHeight)
+		: rect(rect)
+		, viewHeight(viewHeight)
+		, pageHeight(pageHeight)
+	{
+
+	}
+
+	double sliderHeight() const
+	{
+		return Max(rect.h * viewHeight / pageHeight, 20.0);
+	}
+
+	double sliderYPerViewY() const
+	{
+		return (rect.h - sliderHeight()) / (pageHeight - viewHeight);
+	}
+
+	double sliderY() const
+	{
+		return viewTop * sliderYPerViewY();
+	}
+
+	RectF sliderRect() const
+	{
+		return RectF(rect.x, rect.y + sliderY(), rect.w, sliderHeight());
+	}
+
+	bool existSlider() const
+	{
+		return viewHeight < pageHeight;
+	}
+
+	bool isSliderMouseOver() const
+	{
+		return sliderRect().stretched(5).mouseOver();
+	}
+
+	bool isSliderThick() const
+	{
+		return isSliderMouseOver() || dragOffset;
+	}
+
+	Transformer2D createTransformer() const
+	{
+		return Transformer2D(Mat3x2::Translate(0, -viewTop), TransformCursor::Yes);
+	}
+
+	void scrollBy(double h) {
+		viewVelocity += resistance * h;
+	}
+
+	void scrollTopTo(double y) {
+		scrollBy(y - viewTop);
+	}
+
+	void scrollBottomTo(double y) {
+		scrollBy(y - viewTop - viewHeight);
+	}
+
+	void scrollCenterTo(double y) {
+		scrollBy(y - viewTop - viewHeight / 2);
+	}
+
+	void update(double wheel = Mouse::Wheel(), double delta = Scene::DeltaTime())
+	{
+		if (not existSlider()) {
+			viewTop = 0;
+			viewVelocity = 0;
+			dragOffset.reset();
+			sliderWidthTransition.reset();
+			return;
+		}
+
+		for (accumulateTime += delta; accumulateTime >= stepTime; accumulateTime -= stepTime)
+		{
+			if (not dragOffset) {
+				viewTop += viewVelocity * stepTime;
+			}
+
+			if (viewVelocity != 0)
+			{
+				viewVelocity += -viewVelocity * stepTime * resistance;
+			}
+		}
+
+		if (dragOffset)
+		{
+			const double prevTop = viewTop;
+			viewTop = (Cursor::PosF().y - *dragOffset) / sliderYPerViewY();
+			viewVelocity = (viewTop - prevTop) / delta;
+		}
+
+
+		if (isSliderMouseOver() and MouseL.down())
+		{
+			dragOffset = Cursor::PosF().y - sliderY();
+		}
+		else if (dragOffset && MouseL.up())
+		{
+			dragOffset.reset();
+		}
+
+		if (wheel) {
+			viewVelocity = wheel * 2000;
+		}
+
+		if (viewTop < 0)
+		{
+			viewTop = 0;
+			viewVelocity = 0;
+		}
+		else if (viewTop + viewHeight > pageHeight)
+		{
+			viewTop = pageHeight - viewHeight;
+			viewVelocity = 0;
+		}
+
+		sliderWidthTransition.update(isSliderThick());
+
+	}
+
+	void draw(const ColorF& color = Palette::Dimgray) const
+	{
+		if (not existSlider()) return;
+
+		double w = rect.w * (sliderWidthTransition.value() * 0.5 + 0.5);
+
+		RectF(rect.x - w + rect.w, rect.y + sliderY(), w, sliderHeight()).rounded(rect.w / 2).draw(color);
+	}
+
+	double progress0_1() {
+		return viewTop / (pageHeight - viewHeight);
+	}
+};
+
+
 // ユーザ定義型
 struct MyData
 {
@@ -282,6 +438,18 @@ private:
 			reader(i, d, v);
 			Print << U"<<< [" << playerID << U"] からの{},{},{}"_fmt(i, d, v) << U") を受信";
 		}
+
+		if (eventCode == 112) {
+			String message;
+			reader(message);
+			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
+		}
+
+		if (eventCode == 113) {
+			String message;
+			reader(message);
+			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
+		}
 	}
 };
 
@@ -293,145 +461,178 @@ void Main()
 	network.initResister();
 	int32 state = -2;
 
+	ScrollBar scrollBar{ RectF{ 1268, 0, 10, 720 }, 720, 2000 };
+
 	while (System::Update())
 	{
-		network.update();
-
-		int32 prev_state = state;
-		state = network.getState();
-		if (state != prev_state) {
-			//Console << U"state:{}"_fmt(state);
-			//Console <<U"LoomNameList:" << network.getRoomNameList();
-			//Console << U"RoomName:" << network.getCurrentRoomName();
-		}
-
-		if (KeySpace.down()) {
-			//Console << U"state:{}"_fmt(state);
-			//Console << U"LoomNameList:" << network.getRoomNameList();
-			//Console << U"RoomName:" << network.getCurrentRoomName();
-		}
-		PutText(U"state:{}"_fmt(state), Scene::Center());
-
-
-		if (SimpleGUI::Button(U"Connect", Vec2{ 1000, 20 }, 160, (not network.isActive())))
+		scrollBar.update();
 		{
-			const String userName = U"Siv";
-			network.connect(userName, U"jp");
-		}
+			auto t = scrollBar.createTransformer();
 
-		if (SimpleGUI::Button(U"Disconnect", Vec2{ 1000, 60 }, 160, network.isActive()))
-		{
-			network.disconnect();
-		}
 
-		if (SimpleGUI::Button(U"Join Room", Vec2{ 1000, 100 }, 160, network.isInLobby()))
-		{
-			network.joinRandomRoom();
-		}
+			network.update();
 
-		if (SimpleGUI::Button(U"Leave Room", Vec2{ 1000, 140 }, 160, network.isInRoom()))
-		{
-			network.leaveRoom();
-		}
-
-		if (SimpleGUI::Button(U"Send int32", Vec2{ 1000, 180 }, 200, network.isInRoom()))
-		{
-			const int32 n = Random(0, 10000);
-			Print << U"eventCode: 0, int32(" << n << U") を送信 >>>";
-			network.sendEvent(0, n);
-		}
-
-		if (SimpleGUI::Button(U"Send String", Vec2{ 1000, 220 }, 200, network.isInRoom()))
-		{
-			const String s = Sample({ U"Hello!", U"Thank you!", U"Nice!" });
-			Print << U"eventCode: 0, String(" << s << U") を送信 >>>";
-			network.sendEvent(0, s);
-		}
-
-		if (SimpleGUI::Button(U"Send Point", Vec2{ 1000, 260 }, 200, network.isInRoom()))
-		{
-			const Point pos = RandomPoint(Scene::Rect());
-			Print << U"eventCode: 0, Point" << pos << U" を送信 >>>";
-			network.sendEvent(0, pos);
-		}
-
-		if (SimpleGUI::Button(U"Send Array<int32>", Vec2{ 1000, 300 }, 200, network.isInRoom()))
-		{
-			Array<int32> v(3);
-			for (auto& n : v)
-			{
-				n = Random(0, 1000);
+			int32 prev_state = state;
+			state = network.getState();
+			if (state != prev_state) {
+				//Console << U"state:{}"_fmt(state);
+				//Console <<U"LoomNameList:" << network.getRoomNameList();
+				//Console << U"RoomName:" << network.getCurrentRoomName();
 			}
-			Print << U"eventCode: 0, Array<int32>" << v << U" を送信 >>>";
-			network.sendEvent(0, v);
-		}
 
-		if (SimpleGUI::Button(U"Send Array<String>", Vec2{ 1000, 340 }, 200, network.isInRoom()))
-		{
-			Array<String> words(3);
-			for (auto& word : words)
-			{
-				word = Sample({ U"apple", U"bird", U"cat", U"dog" });
+			if (KeySpace.down()) {
+				//Console << U"state:{}"_fmt(state);
+				//Console << U"LoomNameList:" << network.getRoomNameList();
+				//Console << U"RoomName:" << network.getCurrentRoomName();
 			}
-			Print << U"eventCode: 0, Array<String>" << words << U" を送信 >>>";
-			network.sendEvent(0, words);
-		}
+			PutText(U"state:{}"_fmt(state), Scene::Center());
 
-		// ランダムな MyData を送るボタン
-		if (SimpleGUI::Button(U"Send MyData", Vec2{ 1000, 380 }, 200, network.isInRoom()))
-		{
-			MyData myData;
-			myData.word = Sample({ U"apple", U"bird", U"cat", U"dog" });
-			myData.pos = RandomPoint(Scene::Rect());
-
-			Print << U"eventCode: 123, MyData(" << myData.word << U", " << myData.pos << U") を送信 >>>";
-			network.sendEvent(123, Serializer<MemoryWriter>{}(myData));
-		}
-
-		// ランダムな MyData を送るボタン
-		if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, 420 }, 200, network.isInRoom()))
-		{
-			
-
-			Print << U"eventCode: 111 を送信 >>>";
-			network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
-		}
-
-		if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, 460 }, 200, network.isInRoom()))
-		{
-			Print << U"setPropaty";
-			//network.setPlayerProperty(U"key", U"value");
-			network.setRoomProperty(U"key", U"value");
-		}
-
-		if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, 500 }, 200, network.isInRoom()))
-		{
-			Print << U"getPropaty";
-			//Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
-			Print << network.getRoomProperty(U"key");
-			Print << network.getRoomProperty(U"a");
-			Print << network.getRoomProperty(U"a2");
-		}
-
-		if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, 540 }, 200, network.isInRoom()))
-		{
-			Print << U"removePropaty";
-			//network.removePlayerProperty(U"key");
-			network.removeRoomProperty(U"key");
-		}
-
-		if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, 580 }, 200, network.isInLobby()))
-		{
-			Print << U"getRoomList";
-			Print << network.getRoomNameList();
-			for (const auto& room : network.getRoomInfoList())
+			double y = -20;
+			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y+=40) }, 160, (not network.isActive())))
 			{
-				Print << U"RoomName:" << room.name;
-				for (const auto& prop : room.properties)
+				const String userName = U"Siv";
+				network.connect(userName, U"jp");
+			}
+
+			if (SimpleGUI::Button(U"Disconnect", Vec2{ 1000, (y += 40) }, 160, network.isActive()))
+			{
+				network.disconnect();
+			}
+
+			if (SimpleGUI::Button(U"Join Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
+			{
+				network.joinRandomRoom();
+			}
+
+			if (SimpleGUI::Button(U"Leave Room", Vec2{ 1000, (y += 40) }, 160, network.isInRoom()))
+			{
+				network.leaveRoom();
+			}
+
+			if (SimpleGUI::Button(U"Send int32", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				const int32 n = Random(0, 10000);
+				Print << U"eventCode: 0, int32(" << n << U") を送信 >>>";
+				network.sendEvent(0, n);
+			}
+
+			if (SimpleGUI::Button(U"Send String", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				const String s = Sample({ U"Hello!", U"Thank you!", U"Nice!" });
+				Print << U"eventCode: 0, String(" << s << U") を送信 >>>";
+				network.sendEvent(0, s);
+			}
+
+			if (SimpleGUI::Button(U"Send Point", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				const Point pos = RandomPoint(Scene::Rect());
+				Print << U"eventCode: 0, Point" << pos << U" を送信 >>>";
+				network.sendEvent(0, pos);
+			}
+
+			if (SimpleGUI::Button(U"Send Array<int32>", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Array<int32> v(3);
+				for (auto& n : v)
 				{
-					Print << U"RoomProp:" << prop.first << U":" << prop.second;
+					n = Random(0, 1000);
+				}
+				Print << U"eventCode: 0, Array<int32>" << v << U" を送信 >>>";
+				network.sendEvent(0, v);
+			}
+
+			if (SimpleGUI::Button(U"Send Array<String>", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Array<String> words(3);
+				for (auto& word : words)
+				{
+					word = Sample({ U"apple", U"bird", U"cat", U"dog" });
+				}
+				Print << U"eventCode: 0, Array<String>" << words << U" を送信 >>>";
+				network.sendEvent(0, words);
+			}
+
+			// ランダムな MyData を送るボタン
+			if (SimpleGUI::Button(U"Send MyData", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				MyData myData;
+				myData.word = Sample({ U"apple", U"bird", U"cat", U"dog" });
+				myData.pos = RandomPoint(Scene::Rect());
+
+				Print << U"eventCode: 123, MyData(" << myData.word << U", " << myData.pos << U") を送信 >>>";
+				network.sendEvent(123, Serializer<MemoryWriter>{}(myData));
+			}
+
+			// ランダムな MyData を送るボタン
+			if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+
+
+				Print << U"eventCode: 111 を送信 >>>";
+				network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
+			}
+
+			if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"setPropaty";
+				//network.setPlayerProperty(U"key", U"value");
+				network.setRoomProperty(U"key", U"value");
+			}
+
+			if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"getPropaty";
+				//Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
+				Print << network.getRoomProperty(U"key");
+				Print << network.getRoomProperty(U"a");
+				Print << network.getRoomProperty(U"a2");
+			}
+
+			if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removePropaty";
+				//network.removePlayerProperty(U"key");
+				network.removeRoomProperty(U"key");
+			}
+
+			if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, (y += 40) }, 200, network.isInLobby()))
+			{
+				Print << U"getRoomList";
+				Print << network.getRoomNameList();
+				for (const auto& room : network.getRoomInfoList())
+				{
+					Print << U"RoomName:" << room.name;
+					for (const auto& prop : room.properties)
+					{
+						Print << U"RoomProp:" << prop.first << U":" << prop.second;
+					}
 				}
 			}
+
+			if (SimpleGUI::Button(U"cache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"cache >>>";
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u2"));
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f2"));
+
+			}
+
+			if (SimpleGUI::Button(U"removeCache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removeCache >>>";
+				network.removeEventCache(112);
+			}
+
+			if (SimpleGUI::Button(U"removeCache_1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removeCache >>>";
+				network.removeEventCache(112, { 1 });
+			}
+
 		}
+
+		scrollBar.draw();
 	}
 }

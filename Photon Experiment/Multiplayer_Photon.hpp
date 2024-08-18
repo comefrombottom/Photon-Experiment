@@ -160,7 +160,7 @@ namespace s3d
 		Others,
 
 		/// @brief 自分以外のプレイヤーに送信。送信者が部屋を離れるまでキャッシュされます。
-		Ohters_CacheUntilLeaveRoom,
+		Others_CacheUntilLeaveRoom,
 
 		/// @brief 自分以外のプレイヤーに送信。永続的にキャッシュされます。
 		Others_CacheForever,
@@ -607,14 +607,27 @@ namespace s3d
 		{
 			sendEventImpl(event, Serializer<MemoryWriter>{}(args...));
 		}
-
+	private:
 		void sendEventImpl(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
+	public:
+
+		/// @brief キャッシュされたイベントを削除します。
+		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
+		void removeEventCache(uint8 eventCode = 0);
+
+		/// @brief キャッシュされたイベントを削除します。targetsで指定したプレイヤーに紐づくイベントのみ削除します。
+		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
+		/// @param targets 対象のプレイヤーのローカル ID
+		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
+		void removeEventCache(uint8 eventCode, Array<LocalPlayerID> targets);
 
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名
 		[[nodiscard]]
 		String getUserName() const;
 
+		/// @brief 自身のユーザ名を設定します。
+		/// @param userName ユーザ名
 		void setUserName(StringView userName);
 
 		/// @brief 自動生成された自身のユーザ ID を取得します。

@@ -1400,7 +1400,7 @@ namespace s3d
 		{
 		case EventReceiverOption::Others:
 			break;
-		case EventReceiverOption::Ohters_CacheUntilLeaveRoom:
+		case EventReceiverOption::Others_CacheUntilLeaveRoom:
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
 			break;
 		case EventReceiverOption::Others_CacheForever:
@@ -1429,6 +1429,28 @@ namespace s3d
 			.setEventCaching(caching);
 
 		m_client->opRaiseEvent(Reliable, ev, eventInfo.m_eventCode, eventOptions);
+	}
+
+	void Multiplayer_Photon::removeEventCache(uint8 eventCode)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE));
+	}
+
+	void Multiplayer_Photon::removeEventCache(uint8 eventCode, Array<LocalPlayerID> targets)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		auto option = detail::MakeRaiseEventOptions(targets).setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE);
+
+		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, option);
 	}
 
 	String Multiplayer_Photon::getUserName() const
