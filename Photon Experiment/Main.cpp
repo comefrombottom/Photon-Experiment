@@ -336,11 +336,6 @@ private:
 		if (isSelf)
 		{
 			// 自分がルームに参加したときの処理
-			Print << U"visibleProp:" << getVisibleRoomPropertyKeys();
-			setRoomProperty(U"key", U"value");
-			setRoomProperty(U"key2", U"value2");
-			setVisibleRoomPropertyKeys({ U"key2" });
-			Print << U"visibleProp:" << getVisibleRoomPropertyKeys();
 		}
 		else
 		{
@@ -509,65 +504,8 @@ void Main()
 				network.leaveRoom();
 			}
 
-			if (SimpleGUI::Button(U"Send int32", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				const int32 n = Random(0, 10000);
-				Print << U"eventCode: 0, int32(" << n << U") を送信 >>>";
-				network.sendEvent(0, n);
-			}
-
-			if (SimpleGUI::Button(U"Send String", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				const String s = Sample({ U"Hello!", U"Thank you!", U"Nice!" });
-				Print << U"eventCode: 0, String(" << s << U") を送信 >>>";
-				network.sendEvent(0, s);
-			}
-
-			if (SimpleGUI::Button(U"Send Point", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				const Point pos = RandomPoint(Scene::Rect());
-				Print << U"eventCode: 0, Point" << pos << U" を送信 >>>";
-				network.sendEvent(0, pos);
-			}
-
-			if (SimpleGUI::Button(U"Send Array<int32>", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Array<int32> v(3);
-				for (auto& n : v)
-				{
-					n = Random(0, 1000);
-				}
-				Print << U"eventCode: 0, Array<int32>" << v << U" を送信 >>>";
-				network.sendEvent(0, v);
-			}
-
-			if (SimpleGUI::Button(U"Send Array<String>", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Array<String> words(3);
-				for (auto& word : words)
-				{
-					word = Sample({ U"apple", U"bird", U"cat", U"dog" });
-				}
-				Print << U"eventCode: 0, Array<String>" << words << U" を送信 >>>";
-				network.sendEvent(0, words);
-			}
-
-			// ランダムな MyData を送るボタン
-			if (SimpleGUI::Button(U"Send MyData", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				MyData myData;
-				myData.word = Sample({ U"apple", U"bird", U"cat", U"dog" });
-				myData.pos = RandomPoint(Scene::Rect());
-
-				Print << U"eventCode: 123, MyData(" << myData.word << U", " << myData.pos << U") を送信 >>>";
-				network.sendEvent(123, Serializer<MemoryWriter>{}(myData));
-			}
-
-			// ランダムな MyData を送るボタン
 			if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
-
-
 				Print << U"eventCode: 111 を送信 >>>";
 				network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
 			}
@@ -593,6 +531,24 @@ void Main()
 				Print << U"removePropaty";
 				//network.removePlayerProperty(U"key");
 				network.removeRoomProperty(U"key");
+			}
+
+			if (SimpleGUI::Button(U"setPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"setPropaty";
+				network.setPlayerProperty(U"pos", Format(RandomVec2()));
+			}
+
+			if (SimpleGUI::Button(U"getPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"getPropaty";
+				Print << network.getPlayerProperty(network.getLocalPlayerID(), U"pos");
+			}
+
+			if (SimpleGUI::Button(U"removePlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removePropaty";
+				network.removePlayerProperty(U"pos");
 			}
 
 			if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, (y += 40) }, 200, network.isInLobby()))

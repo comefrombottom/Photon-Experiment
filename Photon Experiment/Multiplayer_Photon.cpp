@@ -522,9 +522,29 @@ namespace s3d
 			m_context.createRoomReturn(playerID, errorCode, detail::ToString(errorString));
 		}
 
+		void joinOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
+		{
+			m_context.joinOrCreateRoomReturn(playerID, errorCode, detail::ToString(errorString));
+		}
+
 		void joinRandomOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
 			m_context.joinRandomOrCreateRoomReturn(playerID, errorCode, detail::ToString(errorString));
+		}
+
+		void onRoomListUpdate() override
+		{
+			m_context.onRoomListUpdate();
+		}
+
+		void onRoomPropertiesChange(const ExitGames::Common::Hashtable& changes) override
+		{
+			m_context.onRoomPropertiesChange(detail::PhotonHashtableToStringHashTable(changes));
+		}
+
+		void onPlayerPropertiesChange(const int playerID, const ExitGames::Common::Hashtable& changes) override
+		{
+			m_context.onPlayerPropertiesChange(playerID, detail::PhotonHashtableToStringHashTable(changes));
 		}
 
 	private:
@@ -2063,6 +2083,16 @@ namespace s3d
 		}
 	}
 
+	void Multiplayer_Photon::joinOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString)
+	{
+		if (m_verbose)
+		{
+			Print << U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()";
+			Print << U"- [Multiplayer_Photon] playerID: " << playerID;
+			detail::PrintIfError(errorCode, errorString);
+		}
+	}
+
 	void Multiplayer_Photon::joinRandomOrCreateRoomReturn(const LocalPlayerID playerID, const int32 errorCode, const String& errorString)
 	{
 		if (m_verbose)
@@ -2071,6 +2101,34 @@ namespace s3d
 			Print << U"- [Multiplayer_Photon] playerID: " << playerID;
 			detail::PrintIfError(errorCode, errorString);
 		}
+	}
+
+	void Multiplayer_Photon::onRoomListUpdate()
+	{
+		if (m_verbose)
+		{
+			Print << U"[Multiplayer_Photon] Multiplayer_Photon::onRoomListUpdate() [ルームリストが更新されたときに呼ばれる]";
+		}
+	}
+
+	void Multiplayer_Photon::onRoomPropertiesChange(const HashTable<String, String>& changes)
+	{
+		if (m_verbose)
+		{
+			Print << U"[Multiplayer_Photon] Multiplayer_Photon::onRoomPropertiesChange() [ルームのプロパティが変更されたときに呼ばれる]";
+			Print << U"- [Multiplayer_Photon] changes: " << changes;
+		}
+	}
+
+	void Multiplayer_Photon::onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes)
+	{
+		if (m_verbose)
+		{
+			Print << U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange() [プレイヤーのプロパティが変更されたときに呼ばれる]";
+			Print << U"- [Multiplayer_Photon] playerID: " << playerID;
+			Print << U"- [Multiplayer_Photon] changes: " << changes;
+		}
+	
 	}
 
 	void Multiplayer_Photon::customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const bool data)

@@ -820,11 +820,23 @@ namespace s3d
 		/// @param errorString エラー文字列
 		virtual void createRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
+		/// @brief ルームへの参加またはルームの作成を試みた結果が通知されるときに呼ばれます。
+		/// @param playerID 自身のローカルプレイヤー ID
+		/// @param errorCode エラーコード
+		/// @param errorString エラー文字列
+		virtual void joinOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
+
 		/// @brief ランダムなルームへの参加またはルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
 		/// @param errorCode エラーコード
 		/// @param errorString エラー文字列
 		virtual void joinRandomOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
+
+		virtual void onRoomListUpdate();
+
+		virtual void onRoomPropertiesChange(const HashTable<String,String>& changes);
+
+		virtual void onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes);
 
 		/// @brief ルームのイベントを受信した際に呼ばれます。
 		/// @param playerID 送信者のローカルプレイヤー ID
