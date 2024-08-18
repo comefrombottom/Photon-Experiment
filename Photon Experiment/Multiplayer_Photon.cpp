@@ -569,7 +569,7 @@ namespace s3d {
 		, m_isOpen(isOpen)
 		, m_properties(properties)
 		, m_visibleRoomPropertyKeys(visibleRoomPropertyKeys)
-		, m_reconnectableGraceMilliseconds(reconnectableGraceMilliseconds)
+		, m_rejoinableGraceMilliseconds(reconnectableGraceMilliseconds)
 		, m_emptyRoomLifeMilliseconds(emptyRoomLifeMilliseconds)
 		, m_publishUserId(publishUserId)
 	{
@@ -611,9 +611,9 @@ namespace s3d {
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::reconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds)
+	RoomCreateOption& RoomCreateOption::rejoinableGraceMilliseconds(int32 rejoinableGraceMilliseconds)
 	{
-		m_reconnectableGraceMilliseconds = reconnectableGraceMilliseconds;
+		m_rejoinableGraceMilliseconds = rejoinableGraceMilliseconds;
 		return *this;
 	}
 
@@ -632,7 +632,7 @@ namespace s3d {
 		roomOptions.setCustomRoomProperties(detail::ToPhotonHashtable(m_properties));
 		roomOptions.setPublishUserID(m_publishUserId);
 		roomOptions.setEmptyRoomTtl(m_emptyRoomLifeMilliseconds);
-		roomOptions.setPlayerTtl(m_reconnectableGraceMilliseconds);
+		roomOptions.setPlayerTtl(m_rejoinableGraceMilliseconds);
 		roomOptions.setPropsListedInLobby(detail::ToJStringJVector(m_visibleRoomPropertyKeys));
 		return roomOptions;
 	}

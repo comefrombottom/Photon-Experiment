@@ -505,7 +505,7 @@ void Main()
 			if (SimpleGUI::Button(U"Create Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
 			{
 				const RoomName roomName = (network.getUserName() + U"'s room-" + ToHex(RandomUint32()));
-				network.createRoom(roomName,RoomCreateOption().reconnectableGraceMilliseconds(DurationCast<Milliseconds>(10s).count()));
+				network.createRoom(roomName,RoomCreateOption().rejoinableGraceMilliseconds(DurationCast<Milliseconds>(10s).count()));
 			}
 
 			{

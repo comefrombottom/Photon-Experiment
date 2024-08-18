@@ -120,7 +120,7 @@ namespace s3d
 
 		RoomCreateOption& visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
 
-		RoomCreateOption& reconnectableGraceMilliseconds(int32 reconnectableGraceMilliseconds);
+		RoomCreateOption& rejoinableGraceMilliseconds(int32 rejoinableGraceMilliseconds);
 
 		RoomCreateOption& emptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds);
 
@@ -137,7 +137,7 @@ namespace s3d
 
 		Array<String> m_visibleRoomPropertyKeys;
 
-		int32 m_reconnectableGraceMilliseconds = 0;
+		int32 m_rejoinableGraceMilliseconds = 0;
 
 		int32 m_emptyRoomLifeMilliseconds = 0;
 
