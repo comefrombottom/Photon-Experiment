@@ -220,19 +220,6 @@ private:
 		}
 
 		Scene::SetBackground(ColorF{ 0.4, 0.5, 0.6 });
-
-		Print << U"isInLobby:" << isInLobby();
-
-		Print << getRoomNameList();
-
-		for(const auto& room : getRoomInfoList())
-		{
-			Print << U"RoomName:" << room.name;
-			for(const auto& prop : room.properties)
-			{
-				Print << U"RoomProp:" << prop.first << U":" << prop.second;
-			}
-		}
 	}
 
 	void disconnectReturn() override
@@ -540,42 +527,59 @@ void Main()
 			if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"setPropaty";
-				//network.setPlayerProperty(U"key", U"value");
-				network.setRoomProperty(U"key", U"value");
+				network.addRoomProperty(U"key", U"value");
 			}
 
 			if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"getPropaty";
-				//Print << network.getPlayerProperty(network.getLocalPlayerID(), U"key");
-				Print << network.getRoomProperty(U"key");
-				Print << network.getRoomProperty(U"a");
-				Print << network.getRoomProperty(U"a2");
+				Print << network.getRoomProperties();
 			}
 
 			if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"removePropaty";
-				//network.removePlayerProperty(U"key");
 				network.removeRoomProperty(U"key");
 			}
 
-			if (SimpleGUI::Button(U"setPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			if (SimpleGUI::Button(U"addPlayerProperty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
-				Print << U"setPropaty";
-				network.setPlayerProperty(U"pos", Format(RandomVec2()));
+				Print << U"addPlayerProperty";
+				HashTable<String, String> prop{
+					{U"1", U"a"},
+					{U"2", U"b"},
+				};
+				network.addPlayerProperty(prop);
+			}
+
+			if (SimpleGUI::Button(U"addPlayerProperty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"addPlayerProperty2";
+				HashTable<String, String> prop{
+					{U"1", U"a"},
+					{U"2", U"e"},
+					{U"3", U"c"},
+					{U"4", U"d"},
+				};
+				network.addPlayerProperty(prop);
 			}
 
 			if (SimpleGUI::Button(U"getPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"getPropaty";
-				Print << network.getPlayerProperty(network.getLocalPlayerID(), U"pos");
+				Print << network.getPlayerProperties(network.getLocalPlayerID());
 			}
 
 			if (SimpleGUI::Button(U"removePlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"removePropaty";
 				network.removePlayerProperty(U"pos");
+			}
+
+			if (SimpleGUI::Button(U"removePlayerPropaty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removePropaty";
+				network.removePlayerProperty({ U"1",U"2" });
 			}
 
 			if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, (y += 40) }, 200, network.isInLobby()))

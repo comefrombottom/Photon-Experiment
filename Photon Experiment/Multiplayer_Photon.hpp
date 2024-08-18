@@ -721,27 +721,50 @@ namespace s3d
 		/// @param key キー
 		String getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
 
-		/// @brief 自身のプレイヤープロパティを設定します。
+		/// @brief プレイヤープロパティを取得します。
+		/// @param localPlayerID ルーム内のローカルプレイヤー ID
+		HashTable<String,String> getPlayerProperties(LocalPlayerID localPlayerID) const;
+
+		/// @brief 自身のプレイヤープロパティを追加します。
 		/// @param key キー
 		/// @param value 値
-		void setPlayerProperty(StringView key, StringView value);
+		void addPlayerProperty(StringView key, StringView value);
+
+		/// @brief 自身のプレイヤープロパティを追加します。
+		/// @param property プロパティ
+		void addPlayerProperty(const HashTable<String, String>& property);
 
 		/// @brief 自身のプレイヤープロパティを削除します。
 		/// @param key キー
 		void removePlayerProperty(StringView key);
 
+		/// @brief 自身のプレイヤープロパティを削除します。
+		/// @param keys キーリスト
+		void removePlayerProperty(const Array<String>& keys);
+
 		/// @brief ルームプロパティを取得します。
 		/// @param key キー
 		String getRoomProperty(StringView key) const;
 
-		/// @brief ルームプロパティを設定します。
+		/// @brief ルームプロパティを取得します。
+		HashTable<String,String> getRoomProperties() const;
+
+		/// @brief ルームプロパティを追加します。
 		/// @param key キー
 		/// @param value 値
-		void setRoomProperty(StringView key, StringView value);
+		void addRoomProperty(StringView key, StringView value);
+
+		/// @brief ルームプロパティを追加します。
+		/// @param property プロパティ
+		void addRoomProperty(const HashTable<String, String>& property);
 
 		/// @brief ルームプロパティを削除します。
 		/// @param key キー
 		void removeRoomProperty(StringView key);
+
+		/// @brief ルームプロパティを削除します。
+		/// @param keys キーリスト
+		void removeRoomProperty(const Array<String>& keys);
 
 		/// @brief ロビーから参照可能なルームプロパティのキーリストを返します。
 		/// @return ロビーから参照可能なルームプロパティのキーリスト
