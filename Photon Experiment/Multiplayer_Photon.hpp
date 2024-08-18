@@ -348,7 +348,7 @@ namespace s3d
 		/// @param option ルーム作成オプション
 		void joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
 
-
+		/// @brief 切断状態から、以前に参加していたルームに再参加を試みます。再参加可能な時間を過ぎている場合は失敗します。
 		void reconnectAndRejoin();
 
 		/// @brief ルームからの退出を試みます。
@@ -673,6 +673,7 @@ namespace s3d
 		[[nodiscard]]
 		bool isInRoom() const;
 
+		/// @brief ネットワークの状態を返します。
 		NetworkState getNetworkState() const;
 
 		int32 getState() const;
