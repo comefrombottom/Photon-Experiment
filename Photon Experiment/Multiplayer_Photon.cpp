@@ -88,7 +88,7 @@ namespace s3d
 		[[nodiscard]]
 		static ExitGames::Common::JVector<ExitGames::Common::JString> ToJStringJVector(const Array<String>& data)
 		{
-			ExitGames::Common::JVector<ExitGames::Common::JString> result(data.size());
+			ExitGames::Common::JVector<ExitGames::Common::JString> result(static_cast<uint32>(data.size()));
 
 			for (size_t i = 0; i < data.size(); ++i)
 			{
@@ -848,15 +848,14 @@ namespace s3d
 	
 	}
 
-	void Multiplayer_Photon::joinRoom(const RoomNameView roomName)
+	void Multiplayer_Photon::joinRoom(const RoomNameView roomName, bool rejoin)
 	{
 		if (not m_client)
 		{
 			return;
 		}
 
-		constexpr bool Rejoin = false;
-		m_client->opJoinRoom(detail::ToJString(roomName), Rejoin);
+		m_client->opJoinRoom(detail::ToJString(roomName), rejoin);
 	}
 
 	void Multiplayer_Photon::createRoom(const RoomNameView roomName, const int32 maxPlayers)
@@ -909,14 +908,28 @@ namespace s3d
 		m_client->opJoinOrCreateRoom(detail::ToJString(roomName), option.toRoomOptions());
 	}
 
-	void Multiplayer_Photon::leaveRoom()
+	void Multiplayer_Photon::reconnectAndRejoin()
 	{
 		if (not m_client)
 		{
 			return;
 		}
 
-		constexpr bool willComeBack = false;
+		if (getNetworkState() != NetworkState::Disconnected)
+		{
+			return;
+		}
+
+		m_client->reconnectAndRejoin();
+	}
+
+	void Multiplayer_Photon::leaveRoom(bool willComeBack)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
 		m_client->opLeaveRoom(willComeBack);
 	}
 
@@ -1981,9 +1994,9 @@ namespace s3d
 		return m_client->getLocalPlayer().getIsMasterClient();
 	}
 
-	bool Multiplayer_Photon::isActive() const noexcept
+	bool Multiplayer_Photon::isActive() const
 	{
-		return m_isActive;
+		return getNetworkState() != NetworkState::Disconnected;
 	}
 
 	void Multiplayer_Photon::connectionErrorReturn(const int32 errorCode)

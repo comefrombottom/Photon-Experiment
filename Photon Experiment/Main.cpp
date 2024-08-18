@@ -190,8 +190,6 @@ private:
 
 	Array<LocalPlayer> m_localPlayers;
 
-	
-
 	void customDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
 		Print << U"<<< 111を受信:{},{},{}"_fmt(i, d, v);
 	}
@@ -457,6 +455,7 @@ void Main()
 	int32 state = -2;
 
 	ScrollBar scrollBar{ RectF{ 1268, 0, 10, 720 }, 720, 2000 };
+	bool rejoin = false;
 
 	while (System::Update())
 	{
@@ -464,6 +463,9 @@ void Main()
 		{
 			auto t = scrollBar.createTransformer();
 
+			if (network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected)) {
+				//Console << U"network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected):{},{}"_fmt(network.isActive(), network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected);
+			}
 
 			network.update();
 
@@ -471,19 +473,20 @@ void Main()
 			state = network.getState();
 			if (state != prev_state) {
 				//Console << U"state:{}"_fmt(state);
+				//Console << network.isActive();
 				//Console <<U"LoomNameList:" << network.getRoomNameList();
 				//Console << U"RoomName:" << network.getCurrentRoomName();
 			}
 
 			if (KeySpace.down()) {
-				//Console << U"state:{}"_fmt(state);
+				//Console << U"now_state:{}"_fmt(state);
 				//Console << U"LoomNameList:" << network.getRoomNameList();
 				//Console << U"RoomName:" << network.getCurrentRoomName();
 			}
 			PutText(U"state:{}"_fmt(state), Scene::Center());
 
 			double y = -20;
-			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y+=40) }, 160, (not network.isActive())))
+			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y+=40) }, 160, not network.isActive()))
 			{
 				const String userName = U"Siv";
 				network.connect(userName, U"jp");
@@ -494,14 +497,38 @@ void Main()
 				network.disconnect();
 			}
 
-			if (SimpleGUI::Button(U"Join Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
+			if (SimpleGUI::Button(U"Join Random Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
 			{
 				network.joinRandomRoom();
 			}
 
+			if (SimpleGUI::Button(U"Create Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
+			{
+				const RoomName roomName = (network.getUserName() + U"'s room-" + ToHex(RandomUint32()));
+				network.createRoom(roomName,RoomCreateOption().reconnectableGraceMilliseconds(DurationCast<Milliseconds>(10s).count()));
+			}
+
+			{
+				SimpleGUI::CheckBox(rejoin, U"Rejoin", Vec2{ 700, 0 });
+
+				auto roomNameList = network.getRoomNameList();
+				double y = 0;
+				for (size_t i = 0; i < roomNameList.size(); ++i)
+				{
+					if (SimpleGUI::Button(roomNameList[i], Vec2{ 700, (y += 40) }, 160, network.isInLobby()))
+					{
+						network.joinRoom(roomNameList[i], rejoin);
+					}
+				}
+			}
 			if (SimpleGUI::Button(U"Leave Room", Vec2{ 1000, (y += 40) }, 160, network.isInRoom()))
 			{
 				network.leaveRoom();
+			}
+
+			if (SimpleGUI::Button(U"Leave Room (willComeBack) ", Vec2{ 1000, (y += 40) }, 160, network.isInRoom()))
+			{
+				network.leaveRoom(true);
 			}
 
 			if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
@@ -585,6 +612,20 @@ void Main()
 			{
 				Print << U"removeCache >>>";
 				network.removeEventCache(112, { 1 });
+			}
+
+			if (SimpleGUI::Button(U"reconnectAndRejoin", Vec2{ 1000, (y += 40) }, 200))
+			{
+				network.reconnectAndRejoin();
+			}
+
+			if (SimpleGUI::Button(U"players", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				auto players = network.getLocalPlayers();
+				for (const auto& player : players)
+				{
+					Print << U"player:{} {}"_fmt(player.localID, player.userName);
+				}
 			}
 
 		}

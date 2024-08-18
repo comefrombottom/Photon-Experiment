@@ -330,7 +330,7 @@ namespace s3d
 
 		/// @brief 指定したルームに参加を試みます。
 		/// @param roomName ルーム名
-		void joinRoom(RoomNameView roomName);
+		void joinRoom(RoomNameView roomName, bool rejoin = false);
 
 		/// @brief ルームの作成を試みます。
 		/// @param roomName ルーム名
@@ -348,8 +348,11 @@ namespace s3d
 		/// @param option ルーム作成オプション
 		void joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
 
+
+		void reconnectAndRejoin();
+
 		/// @brief ルームからの退出を試みます。
-		void leaveRoom();
+		void leaveRoom(bool willComeBack = false);
 
 		/// @brief 指定したイベントターゲットグループに参加します。
 		/// @param targetGroup ターゲットグループ　(1以上255以下の整数)
@@ -770,7 +773,7 @@ namespace s3d
 		/// @brief update() を呼ぶ必要がある状態であるかを返します。
 		/// @return  update() を呼ぶ必要がある状態である場合 true, それ以外の場合は false
 		[[nodiscard]]
-		bool isActive() const noexcept;
+		bool isActive() const;
 
 		/// @brief サーバへの接続に失敗したときに呼ばれます。
 		/// @param errorCode エラーコード
