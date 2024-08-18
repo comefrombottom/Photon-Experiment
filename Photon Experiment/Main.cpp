@@ -632,6 +632,11 @@ void Main()
 				}
 			}
 
+			if (SimpleGUI::Button(U"setHost", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				network.setHost(network.getLocalPlayerID());
+			}
+
 		}
 
 		scrollBar.draw();

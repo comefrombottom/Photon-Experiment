@@ -547,6 +547,11 @@ namespace s3d
 			m_context.onPlayerPropertiesChange(playerID, detail::PhotonHashtableToStringHashTable(changes));
 		}
 
+		void onMasterClientChanged(const int newHostID, const int oldHostID) override
+		{
+			m_context.onHostChange(newHostID, oldHostID);
+		}
+
 	private:
 
 		Multiplayer_Photon& m_context;
@@ -2055,6 +2060,21 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
 	}
 
+	void Multiplayer_Photon::setHost(LocalPlayerID localPlayerID)
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return;
+		}
+
+		m_client->getCurrentlyJoinedRoom().setMasterClient(*m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID));
+	}
+
 	int32 Multiplayer_Photon::getCountGamesRunning() const
 	{
 		if (not m_client)
@@ -2243,6 +2263,16 @@ namespace s3d
 			Print << U"- [Multiplayer_Photon] changes: " << changes;
 		}
 	
+	}
+
+	void Multiplayer_Photon::onHostChange(LocalPlayerID newHostPlayerID, LocalPlayerID oldHostPlayerID)
+	{
+		if (m_verbose)
+		{
+			Print << U"[Multiplayer_Photon] Multiplayer_Photon::onHostChange() [ホストが変更されたときに呼ばれる]";
+			Print << U"- [Multiplayer_Photon] newHostPlayerID: " << newHostPlayerID;
+			Print << U"- [Multiplayer_Photon] oldHostPlayerID: " << oldHostPlayerID;
+		}
 	}
 
 	void Multiplayer_Photon::customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const bool data)

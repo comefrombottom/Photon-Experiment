@@ -774,6 +774,8 @@ namespace s3d
 		/// @param keys キーリスト
 		void setVisibleRoomPropertyKeys(const Array<String>& keys);
 
+		void setHost(LocalPlayerID localPlayerID);
+
 		/// @brief ルームの数を返します。
 		/// @return ルームの数
 		[[nodiscard]]
@@ -870,6 +872,11 @@ namespace s3d
 		/// @param playerID 変更されたプレイヤーのローカルプレイヤー ID
 		/// @param changes 変更されたプロパティのキーと値
 		virtual void onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes);
+
+		/// @brief ホストが変更されたときに呼ばれます。
+		/// @param newHostPlayerID 新しいホストのローカルプレイヤー ID
+		/// @param oldHostPlayerID 古いホストのローカルプレイヤー ID
+		virtual void onHostChange(LocalPlayerID newHostPlayerID, LocalPlayerID oldHostPlayerID);
 
 		/// @brief ルームのイベントを受信した際に呼ばれます。
 		/// @param playerID 送信者のローカルプレイヤー ID
