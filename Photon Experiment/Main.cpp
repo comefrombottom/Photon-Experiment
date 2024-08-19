@@ -179,10 +179,11 @@ public:
 
 	//static constexpr int32 MaxPlayers = 3;
 
-	using Multiplayer_Photon::Multiplayer_Photon;
+	//using Multiplayer_Photon::Multiplayer_Photon;
 
-	void initResister() {
-		// シリアライズデータを受信したときに呼ばれる関数を登録する
+	MyNetwork(const std::string& appID, const String& appVersion, Verbose verbose)
+		: Multiplayer_Photon(appID, appVersion, verbose)
+	{
 		RegisterEventCallback(111, &MyNetwork::customDataReceive111);
 	}
 
@@ -438,7 +439,7 @@ void Main()
 	Window::Resize(1280, 720);
 	const std::string secretAppID{ SIV3D_OBFUSCATE(PHOTON_APP_ID) };
 	MyNetwork network{ secretAppID, U"1.0", Verbose::Yes };
-	network.initResister();
+
 	int32 state = -2;
 
 	ScrollBar scrollBar{ RectF{ 1268, 0, 10, 720 }, 720, 2000 };
@@ -456,21 +457,21 @@ void Main()
 
 			network.update();
 
-			int32 prev_state = state;
-			state = network.getState();
-			if (state != prev_state) {
-				//Console << U"state:{}"_fmt(state);
-				//Console << network.isActive();
-				//Console <<U"LoomNameList:" << network.getRoomNameList();
-				//Console << U"RoomName:" << network.getCurrentRoomName();
-			}
+			//int32 prev_state = state;
+			//state = network.getState();
+			//if (state != prev_state) {
+			//	//Console << U"state:{}"_fmt(state);
+			//	//Console << network.isActive();
+			//	//Console <<U"LoomNameList:" << network.getRoomNameList();
+			//	//Console << U"RoomName:" << network.getCurrentRoomName();
+			//}
 
-			if (KeySpace.down()) {
-				//Console << U"now_state:{}"_fmt(state);
-				//Console << U"LoomNameList:" << network.getRoomNameList();
-				//Console << U"RoomName:" << network.getCurrentRoomName();
-			}
-			PutText(U"state:{}"_fmt(state), Scene::Center());
+			//if (KeySpace.down()) {
+			//	//Console << U"now_state:{}"_fmt(state);
+			//	//Console << U"LoomNameList:" << network.getRoomNameList();
+			//	//Console << U"RoomName:" << network.getCurrentRoomName();
+			//}
+			//PutText(U"state:{}"_fmt(state), Scene::Center());
 
 			double y = -20;
 			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y+=40) }, 160, not network.isActive()))
@@ -492,11 +493,11 @@ void Main()
 			if (SimpleGUI::Button(U"Create Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
 			{
 				const RoomName roomName = (network.getUserName() + U"'s room-" + ToHex(RandomUint32()));
-				network.createRoom(roomName,RoomCreateOption().rejoinableGraceMilliseconds(DurationCast<Milliseconds>(10s).count()));
+				network.createRoom(roomName,RoomCreateOption().rejoinGracePeriod(10s));
 			}
 
 			{
-				SimpleGUI::CheckBox(rejoin, U"Rejoin", Vec2{ 700, 0 });
+				//SimpleGUI::CheckBox(rejoin, U"Rejoin", Vec2{ 700, 0 });
 
 				auto roomNameList = network.getRoomNameList();
 				double y = 0;
@@ -504,7 +505,7 @@ void Main()
 				{
 					if (SimpleGUI::Button(roomNameList[i], Vec2{ 700, (y += 40) }, 160, network.isInLobby()))
 					{
-						network.joinRoom(roomNameList[i], rejoin);
+						network.joinRoom(roomNameList[i]);
 					}
 				}
 			}
@@ -586,7 +587,7 @@ void Main()
 			{
 				Print << U"getRoomList";
 				Print << network.getRoomNameList();
-				for (const auto& room : network.getRoomInfoList())
+				for (const auto& room : network.getRoomList())
 				{
 					Print << U"RoomName:" << room.name;
 					for (const auto& prop : room.properties)

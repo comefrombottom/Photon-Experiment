@@ -98,6 +98,21 @@ namespace s3d
 			return result;
 		}
 
+		[[nodiscard]]
+		static ExitGames::LoadBalancing::RoomOptions ToRoomOptions(const RoomCreateOption& option)
+		{
+			ExitGames::LoadBalancing::RoomOptions roomOptions;
+			roomOptions.setMaxPlayers(static_cast<uint8>(option.maxPlayers()));
+			roomOptions.setIsVisible(option.isVisible());
+			roomOptions.setIsOpen(option.isOpen());
+			roomOptions.setCustomRoomProperties(ToPhotonHashtable(option.properties()));
+			roomOptions.setPublishUserID(option.publishUserId());
+			roomOptions.setEmptyRoomTtl(static_cast<int32>(option.rejoinGracePeriod().count()));
+			roomOptions.setPlayerTtl(static_cast<int32>(option.roomDestroyGracePeriod().count()));
+			roomOptions.setPropsListedInLobby(ToJStringJVector(option.visibleRoomPropertyKeys()));
+			return roomOptions;
+		}
+
 	}
 
 	template <class Type, uint8 customTypeIndex>
@@ -568,17 +583,8 @@ namespace s3d
 }
 
 namespace s3d {
-	RoomCreateOption::RoomCreateOption(int32 maxPlayers, bool isVisible, bool isOpen, const HashTable<String, String>& properties, const Array<String>& visibleRoomPropertyKeys, int32 reconnectableGraceMilliseconds, int32 emptyRoomLifeMilliseconds, bool publishUserId)
-		: m_maxPlayers(maxPlayers)
-		, m_isVisible(isVisible)
-		, m_isOpen(isOpen)
-		, m_properties(properties)
-		, m_visibleRoomPropertyKeys(visibleRoomPropertyKeys)
-		, m_rejoinableGraceMilliseconds(reconnectableGraceMilliseconds)
-		, m_emptyRoomLifeMilliseconds(emptyRoomLifeMilliseconds)
-		, m_publishUserId(publishUserId)
-	{
-	}
+
+	//RoomCreateOption
 
 	RoomCreateOption& RoomCreateOption::isVisible(bool isVisible)
 	{
@@ -616,37 +622,69 @@ namespace s3d {
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::rejoinableGraceMilliseconds(int32 rejoinableGraceMilliseconds)
+	RoomCreateOption& RoomCreateOption::rejoinGracePeriod(Milliseconds rejoinGracePeriod)
 	{
-		m_rejoinableGraceMilliseconds = rejoinableGraceMilliseconds;
+		m_rejoinGracePeriod = rejoinGracePeriod;
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::emptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds)
+	RoomCreateOption& RoomCreateOption::roomDestroyGracePeriod(Milliseconds roomDestroyGracePeriod)
 	{
-		m_emptyRoomLifeMilliseconds = emptyRoomLifeMilliseconds;
+		m_roomDestroyGracePeriod = roomDestroyGracePeriod;
 		return *this;
 	}
 
-	ExitGames::LoadBalancing::RoomOptions RoomCreateOption::toRoomOptions() const
+	bool RoomCreateOption::isVisible() const noexcept
 	{
-		ExitGames::LoadBalancing::RoomOptions roomOptions;
-		roomOptions.setMaxPlayers(m_maxPlayers);
-		roomOptions.setIsVisible(m_isVisible);
-		roomOptions.setIsOpen(m_isOpen);
-		roomOptions.setCustomRoomProperties(detail::ToPhotonHashtable(m_properties));
-		roomOptions.setPublishUserID(m_publishUserId);
-		roomOptions.setEmptyRoomTtl(m_emptyRoomLifeMilliseconds);
-		roomOptions.setPlayerTtl(m_rejoinableGraceMilliseconds);
-		roomOptions.setPropsListedInLobby(detail::ToJStringJVector(m_visibleRoomPropertyKeys));
-		return roomOptions;
+		return m_isVisible;
 	}
+
+	bool RoomCreateOption::isOpen() const noexcept
+	{
+		return m_isOpen;
+	}
+
+	bool RoomCreateOption::publishUserId() const noexcept
+	{
+		return m_publishUserId;
+	}
+
+	int32 RoomCreateOption::maxPlayers() const noexcept
+	{
+		return m_maxPlayers;
+	}
+
+	const HashTable<String, String>& RoomCreateOption::properties() const noexcept
+	{
+		return m_properties;
+	}
+
+	const Array<String>& RoomCreateOption::visibleRoomPropertyKeys() const noexcept
+	{
+		return m_visibleRoomPropertyKeys;
+	}
+
+	Milliseconds RoomCreateOption::rejoinGracePeriod() const noexcept
+	{
+		return m_rejoinGracePeriod;
+	}
+
+	Milliseconds RoomCreateOption::roomDestroyGracePeriod() const noexcept
+	{
+		return m_roomDestroyGracePeriod;
+	}
+
+	//MultiplayerEvent
 
 	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
 		: m_eventCode(eventCode)
 		, m_receiverOption(receiverOption)
 		, m_priorityIndex(priorityIndex)
 	{
+		if (not InRange<uint8>(eventCode, 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+		}
 	}
 
 	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
@@ -654,6 +692,10 @@ namespace s3d {
 		, m_targetList(targetList)
 		, m_priorityIndex(priorityIndex)
 	{
+		if (not InRange<uint8>(eventCode, 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+		}
 	}
 
 	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex)
@@ -661,12 +703,41 @@ namespace s3d {
 		, m_targetGroup(targetGroup)
 		, m_priorityIndex(priorityIndex)
 	{
+		if (not InRange<uint8>(eventCode, 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+		}
+	}
+
+	uint8 MultiplayerEvent::eventCode() const noexcept
+	{
+		return m_eventCode;
+	}
+
+	uint8 MultiplayerEvent::priorityIndex() const noexcept
+	{
+		return m_priorityIndex;
+	}
+
+	uint8 MultiplayerEvent::targetGroup() const noexcept
+	{
+		return m_targetGroup;
+	}
+
+	EventReceiverOption MultiplayerEvent::receiverOption() const noexcept
+	{
+		return m_receiverOption;
+	}
+
+	const Optional<Array<LocalPlayerID>>& MultiplayerEvent::targetList() const noexcept
+	{
+		return m_targetList;
 	}
 }
 
 namespace s3d
 {
-	Multiplayer_Photon::Multiplayer_Photon(const std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose)
+	Multiplayer_Photon::Multiplayer_Photon(const std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, ConnectionProtocol protocol)
 	{
 		init(Unicode::WidenAscii(secretPhotonAppID), photonAppVersion, verbose);
 	}
@@ -678,7 +749,7 @@ namespace s3d
 		UnregisterTypes();
 	}
 
-	void Multiplayer_Photon::init(const StringView secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose)
+	void Multiplayer_Photon::init(const StringView secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, ConnectionProtocol protocol)
 	{
 		if (m_listener) // すでに初期化済みであれば何もしない
 		{
@@ -689,12 +760,13 @@ namespace s3d
 		m_photonAppVersion = photonAppVersion;
 		m_listener	= std::make_unique<PhotonDetail>(*this);
 		m_verbose	= verbose.getBool();
+		m_connectionProtocol = protocol;
 		m_isActive	= false;
 
 		RegisterTypes();
 	}
 
-	void Multiplayer_Photon::connect(const StringView userName_, const Optional<String>& region)
+	bool Multiplayer_Photon::connect(const StringView userName_, const Optional<String>& region)
 	{
 		m_requestedRegion = region;
 
@@ -713,11 +785,13 @@ namespace s3d
 				Print << U"[Multiplayer_Photon] ExitGmae::LoadBalancing::Client::connect() failed.";
 			}
 
-			return;
+			return false;
 		}
 
 		m_client->fetchServerTimestamp();
 		m_isActive = true;
+
+		return true;
 	}
 
 	void Multiplayer_Photon::disconnect()
@@ -792,150 +866,150 @@ namespace s3d
 		return m_client->getBytesOut();
 	}
 
-	void Multiplayer_Photon::joinRandomRoom(int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomRoom(int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (not InRange(expectedMaxPlayers, 0, 255))
 		{
-			return;
+			return false;
 		}
 
-		m_client->opJoinRandomRoom({}, static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
+		return m_client->opJoinRandomRoom({}, static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
 	}
 
-	void Multiplayer_Photon::joinRandomRoom(const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomRoom(const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (not InRange(expectedMaxPlayers, 0, 255))
 		{
-			return;
+			return false;
 		}
 
-		m_client->opJoinRandomRoom(detail::ToPhotonHashtable(propertyFilter), static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
+		return m_client->opJoinRandomRoom(detail::ToPhotonHashtable(propertyFilter), static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
 	}
 
-	void Multiplayer_Photon::joinRandomOrCreateRoom(const int32 maxPlayers, const RoomNameView roomName)
+	bool Multiplayer_Photon::joinRandomOrCreateRoom(const int32 maxPlayers, const RoomNameView roomName)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (not InRange(maxPlayers, 0, 255))
 		{
-			return;
+			return false;
 		}
 
-		m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(maxPlayers));
+		return m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(maxPlayers));
 	}
 
-	void Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (not InRange(expectedMaxPlayers, 0, 255))
 		{
-			return;
+			return false;
 		}
 
-		m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), roomCreateOption.toRoomOptions(), detail::ToPhotonHashtable(propertyFilter), static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
+		return m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), detail::ToRoomOptions(roomCreateOption), detail::ToPhotonHashtable(propertyFilter), static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
 	
 	}
 
-	void Multiplayer_Photon::joinRoom(const RoomNameView roomName, bool rejoin)
+	bool Multiplayer_Photon::joinRoom(const RoomNameView roomName)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
-		m_client->opJoinRoom(detail::ToJString(roomName), rejoin);
+		return m_client->opJoinRoom(detail::ToJString(roomName), true);
 	}
 
-	void Multiplayer_Photon::createRoom(const RoomNameView roomName, const int32 maxPlayers)
+	bool Multiplayer_Photon::createRoom(const RoomNameView roomName, const int32 maxPlayers)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (not InRange(maxPlayers, 0, 255))
 		{
-			return;
+			return false;
 		}
 
 		const auto roomOption = ExitGames::LoadBalancing::RoomOptions()
 			.setMaxPlayers(static_cast<uint8>(maxPlayers))
 			.setPublishUserID(true);
 
-		m_client->opCreateRoom(detail::ToJString(roomName), roomOption);
+		return m_client->opCreateRoom(detail::ToJString(roomName), roomOption);
 	}
 
-	void Multiplayer_Photon::createRoom(RoomNameView roomName, const RoomCreateOption& option)
+	bool Multiplayer_Photon::createRoom(RoomNameView roomName, const RoomCreateOption& option)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
-		if (not InRange(option.m_maxPlayers, 0, 255))
+		if (not InRange(option.maxPlayers(), 0, 255))
 		{
-			return;
+			return false;
 		}
 
-		m_client->opCreateRoom(detail::ToJString(roomName), option.toRoomOptions());
+		return m_client->opCreateRoom(detail::ToJString(roomName), detail::ToRoomOptions(option));
 	}
 
-	void Multiplayer_Photon::joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option)
+	bool Multiplayer_Photon::joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
-		if (not InRange(option.m_maxPlayers, 0, 255))
+		if (not InRange(option.maxPlayers(), 0, 255))
 		{
-			return;
+			return false;
 		}
 
 
-		m_client->opJoinOrCreateRoom(detail::ToJString(roomName), option.toRoomOptions());
+		return m_client->opJoinOrCreateRoom(detail::ToJString(roomName), detail::ToRoomOptions(option));
 	}
 
-	void Multiplayer_Photon::reconnectAndRejoin()
+	bool Multiplayer_Photon::reconnectAndRejoin()
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
 		if (getNetworkState() != NetworkState::Disconnected)
 		{
-			return;
+			return false;
 		}
 
-		m_client->reconnectAndRejoin();
+		return m_client->reconnectAndRejoin();
 	}
 
-	void Multiplayer_Photon::leaveRoom(bool willComeBack)
+	bool Multiplayer_Photon::leaveRoom(bool willComeBack)
 	{
 		if (not m_client)
 		{
-			return;
+			return false;
 		}
 
-		m_client->opLeaveRoom(willComeBack);
+		return m_client->opLeaveRoom(willComeBack);
 	}
 
 	void Multiplayer_Photon::joinEventTargetGroup(uint8 targetGroup)
@@ -1008,6 +1082,9 @@ namespace s3d
 			return options;
 		}
 	}
+
+#if SIV3D_MULTIPLAYER_PHOTON_LEGACY == 1
+
 
 	void Multiplayer_Photon::sendEvent(const uint8 eventCode, const bool value, const Optional<Array<LocalPlayerID>>& targets)
 	{
@@ -1416,6 +1493,8 @@ namespace s3d
 		m_client->opRaiseEvent(Reliable, ev, eventCode, detail::MakeRaiseEventOptions(targets));
 	}
 
+#endif
+
 	void Multiplayer_Photon::sendEventImpl(const MultiplayerEvent& eventInfo, const Serializer<MemoryWriter>& writer)
 	{
 		if (not m_client)
@@ -1434,7 +1513,7 @@ namespace s3d
 		uint8 receiver = ExitGames::Lite::ReceiverGroup::OTHERS;
 		uint8 caching = ExitGames::Lite::EventCache::DO_NOT_CACHE;
 
-		switch (eventInfo.m_receiverOption)
+		switch (eventInfo.receiverOption())
 		{
 		case EventReceiverOption::Others:
 			break;
@@ -1460,13 +1539,13 @@ namespace s3d
 			break;
 		}
 
-		const auto eventOptions = detail::MakeRaiseEventOptions(eventInfo.m_targetList)
-			.setChannelID(eventInfo.m_priorityIndex)
-			.setInterestGroup(eventInfo.m_targetGroup)
+		const auto eventOptions = detail::MakeRaiseEventOptions(eventInfo.targetList())
+			.setChannelID(eventInfo.priorityIndex())
+			.setInterestGroup(eventInfo.targetGroup())
 			.setReceiverGroup(receiver)
 			.setEventCaching(caching);
 
-		m_client->opRaiseEvent(Reliable, ev, eventInfo.m_eventCode, eventOptions);
+		m_client->opRaiseEvent(Reliable, ev, eventInfo.eventCode(), eventOptions);
 	}
 
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode)
@@ -1489,6 +1568,32 @@ namespace s3d
 		auto option = detail::MakeRaiseEventOptions(targets).setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE);
 
 		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, option);
+	}
+
+	LocalPlayer Multiplayer_Photon::getLocalPlayer() const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& player = m_client->getLocalPlayer();
+
+		LocalPlayer localPlayer
+		{
+			.localID = player.getNumber(),
+			.userName = detail::ToString(player.getName()),
+			.userID = detail::ToString(player.getUserID()),
+			.isHost = player.getIsMasterClient(),
+			.isActive = (not player.getIsInactive()),
+		};
+
+		return localPlayer;
 	}
 
 	String Multiplayer_Photon::getUserName() const
@@ -1574,7 +1679,7 @@ namespace s3d
 		return results;
 	}
 
-	Array<RoomInfo> Multiplayer_Photon::getRoomInfoList() const
+	Array<RoomInfo> Multiplayer_Photon::getRoomList() const
 	{
 		if (not m_client)
 		{
@@ -1680,14 +1785,40 @@ namespace s3d
 		}
 	}
 
-	int32 Multiplayer_Photon::getState() const
+	RoomInfo Multiplayer_Photon::getCurrentRoom() const
 	{
 		if (not m_client)
 		{
-			return -1;
+			return{};
 		}
-		return m_client->getState();
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& room = m_client->getCurrentlyJoinedRoom();
+
+		RoomInfo roomInfo
+		{
+			.name		= detail::ToString(room.getName()),
+			.playerCount	= room.getPlayerCount(),
+			.maxPlayers		= room.getMaxPlayers(),
+			.isOpen			= room.getIsOpen(),
+			.properties		= detail::PhotonHashtableToStringHashTable(room.getCustomProperties()),
+		};
+
+		return roomInfo;
 	}
+
+	//int32 Multiplayer_Photon::getState() const
+	//{
+	//	if (not m_client)
+	//	{
+	//		return -1;
+	//	}
+	//	return m_client->getState();
+	//}
 
 	String Multiplayer_Photon::getCurrentRoomName() const
 	{
@@ -2115,7 +2246,7 @@ namespace s3d
 		return m_client->getLocalPlayer().getIsMasterClient();
 	}
 
-	bool Multiplayer_Photon::isActive() const
+	bool Multiplayer_Photon::isActive() const noexcept
 	{
 		return getNetworkState() != NetworkState::Disconnected;
 	}
@@ -2274,6 +2405,8 @@ namespace s3d
 			Print << U"- [Multiplayer_Photon] oldHostPlayerID: " << oldHostPlayerID;
 		}
 	}
+
+#if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 
 	void Multiplayer_Photon::customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const bool data)
 	{
@@ -2554,6 +2687,8 @@ namespace s3d
 			detail::PrintCustomEventAction(U"RoundRect", playerID, eventCode, data);
 		}
 	}
+
+#endif
 
 	void Multiplayer_Photon::customEventAction(const LocalPlayerID playerID, const uint8 eventCode, [[maybe_unused]] Deserializer<MemoryViewReader>& reader)
 	{

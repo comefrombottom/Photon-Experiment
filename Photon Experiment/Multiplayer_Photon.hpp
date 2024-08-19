@@ -19,6 +19,15 @@
 # pragma once
 # include <Siv3D.hpp>
 
+/// @brief 従来のMultiplayer_Photonとの互換性を保つ場合には 1、新しいバージョンのみを使用する場合には 0
+/// @remark Web版を使用する場合には必ず 0 に設定されます。
+# define SIV3D_MULTIPLAYER_PHOTON_LAGACY 1
+
+# if SIV3D_PLATFORM(WEB)
+#	undef SIV3D_MULTIPLAYER_PHOTON_LAGACY
+#	define SIV3D_MULTIPLAYER_PHOTON_LAGACY 0
+# endif
+
 # if SIV3D_PLATFORM(WINDOWS)
 #	if SIV3D_BUILD(DEBUG)
 #		pragma comment (lib, "Common-cpp/lib/Common-cpp_vc16_debug_windows_mt_x64")
@@ -31,13 +40,15 @@
 #	endif
 # endif
 
-// Photono SDK クラスの前方宣言
+# if not SIV3D_PLATFORM(WEB)
+// Photon SDK クラスの前方宣言
 namespace ExitGames::LoadBalancing
 {
 	class Listener;
 	class Client;
 	class RoomOptions;
 }
+# endif
 
 namespace s3d
 {
@@ -88,11 +99,21 @@ namespace s3d
 		HashTable<String, String> properties;
 	};
 
-	class Multiplayer_Photon;
+	enum class ConnectionProtocol : uint8
+	{
+		Default = 0,
+		Ws = 0,
+		Wss = 1,
+		UDP = 0,
+		TCP = 1,
+	};
 
+	class Multiplayer_Photon;
 
 	namespace detail
 	{
+		class RoomCreateOptionDetail;
+
 		using TypeErasedCallback = void(Multiplayer_Photon::*)();
 		using CallbackWrapper = void(*)(Multiplayer_Photon&, TypeErasedCallback, LocalPlayerID, Deserializer<MemoryViewReader>&);
 
@@ -103,10 +124,7 @@ namespace s3d
 	{
 	public:
 		[[nodiscard]]
-		RoomCreateOption() = default;
-
-		[[nodiscard]]
-		explicit RoomCreateOption(int32 maxPlayers, bool isVisible = true, bool isOpen = true, const HashTable<String, String>& properties = {}, const Array<String>& visibleRoomPropertyKeys = {}, int32 reconnectableGraceMilliseconds = 0, int32 emptyRoomLifeMilliseconds = 0, bool publishUserId = true);
+		constexpr RoomCreateOption() = default;
 
 		RoomCreateOption& isVisible(bool isVisible);
 
@@ -120,11 +138,36 @@ namespace s3d
 
 		RoomCreateOption& visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
 
-		RoomCreateOption& rejoinableGraceMilliseconds(int32 rejoinableGraceMilliseconds);
+		RoomCreateOption& rejoinGracePeriod(Milliseconds rejoinGracePeriod);
 
-		RoomCreateOption& emptyRoomLifeMilliseconds(int32 emptyRoomLifeMilliseconds);
+		RoomCreateOption& roomDestroyGracePeriod(Milliseconds roomDestroyGracePeriod);
+
+		[[nodiscard]]
+		bool isVisible() const noexcept;
+
+		[[nodiscard]]
+		bool isOpen() const noexcept;
+
+		[[nodiscard]]
+		bool publishUserId() const noexcept;
+
+		[[nodiscard]]
+		int32 maxPlayers() const noexcept;
+
+		[[nodiscard]]
+		const HashTable<String, String>& properties() const noexcept;
+
+		[[nodiscard]]
+		const Array<String>& visibleRoomPropertyKeys() const noexcept;
+
+		[[nodiscard]]
+		Milliseconds rejoinGracePeriod() const noexcept;
+
+		[[nodiscard]]
+		Milliseconds roomDestroyGracePeriod() const noexcept;
 
 	private:
+
 		bool m_isVisible = true;
 
 		bool m_isOpen = true;
@@ -133,17 +176,13 @@ namespace s3d
 
 		int32 m_maxPlayers = 0;
 
-		HashTable<String, String> m_properties;
+		HashTable<String, String> m_properties{};
 
-		Array<String> m_visibleRoomPropertyKeys;
+		Array<String> m_visibleRoomPropertyKeys{};
 
-		int32 m_rejoinableGraceMilliseconds = 0;
+		Milliseconds m_rejoinGracePeriod = 0ms;
 
-		int32 m_emptyRoomLifeMilliseconds = 0;
-
-		ExitGames::LoadBalancing::RoomOptions toRoomOptions() const;
-
-		friend class Multiplayer_Photon;
+		Milliseconds m_roomDestroyGracePeriod = 0ms;
 	};
 
 	enum class MatchmakingMode : uint8
@@ -182,6 +221,7 @@ namespace s3d
 	class MultiplayerEvent
 	{
 	public:
+
 		[[nodiscard]]
 		MultiplayerEvent() = default;
 
@@ -189,6 +229,7 @@ namespace s3d
 		/// @param eventCode イベントコード (1~199)
 		/// @param receiverOption ターゲット指定オプション
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		/// @remark Web 版では priorityIndex は無視されます。
 		[[nodiscard]]
 		explicit MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption = EventReceiverOption::Others, uint8 priorityIndex = 0);
 
@@ -196,6 +237,7 @@ namespace s3d
 		/// @param eventCode イベントコード (1~199)
 		/// @param targetList ターゲットリスト
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		/// @remark Web 版では priorityIndex は無視されます。
 		[[nodiscard]]
 		MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
 
@@ -203,26 +245,36 @@ namespace s3d
 		/// @param eventCode イベントコード (1~199)
 		/// @param targetGroup ターゲットグループ (1以上255以下の整数)
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
+		/// @remark Web 版では priorityIndex は無視されます。
 		[[nodiscard]]
 		MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex = 0);
 
+		[[nodiscard]]
+		uint8 eventCode() const noexcept;
+
+		[[nodiscard]]
+		uint8 priorityIndex() const noexcept;
+
+		[[nodiscard]]
+		uint8 targetGroup() const noexcept;
+
+		[[nodiscard]]
+		EventReceiverOption receiverOption() const noexcept;
+
+		[[nodiscard]]
+		const Optional<Array<LocalPlayerID>>& targetList() const noexcept;
+
 	private:
-		/// @brief イベントコード (1~199)
+
 		uint8 m_eventCode = 0;
 
-		/// @brief プライオリティインデックス　0に近いほど優先的に処理される
 		uint8 m_priorityIndex = 0;
 
-		/// @brief ターゲットグループ (1以上255以下の整数)
 		uint8 m_targetGroup = 0;
 
-		/// @brief ターゲット指定オプション
 		EventReceiverOption m_receiverOption = EventReceiverOption::Others;
 
-		/// @brief ターゲットリスト
 		Optional<Array<LocalPlayerID>> m_targetList;
-
-		friend class Multiplayer_Photon;
 	};
 
 	/// @brief マルチプレイヤー用クラス (Photon バックエンド)
@@ -248,9 +300,10 @@ namespace s3d
 		/// @param secretPhotonAppID Photon アプリケーション ID
 		/// @param photonAppVersion アプリケーションのバージョン
 		/// @param デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
+		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes);
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief デストラクタ
 		virtual ~Multiplayer_Photon();
@@ -260,13 +313,24 @@ namespace s3d
 		/// @param photonAppVersion アプリケーションのバージョン
 		/// @param verbose デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
-		void init(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes);
+		void init(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+
+		/// @brief 自身のユーザ名を設定します。
+		/// @param name 自身のユーザ名
+		void setUserName(StringView name);
+
+		/// @brief 自身のユーザ ID を設定します。
+		/// @return 自身のユーザ ID
+		/// @remark ユーザ ID はconnect()を呼びだした後は変更することができません。
+		/// @remark ユーザ ID が未指定の場合にはユーザ名から自動的に生成されます。
+		void setUserID(StringView userID);
 
 		/// @brief Photon サーバへの接続を試みます。
 		/// @param userName ユーザ名
-		/// @param region 接続するサーバのリージョン。unspecified の場合は利用可能なサーバのうち最速のものが選択されます
+		/// @param region 接続するサーバのリージョン。unspecified の場合は利用可能なサーバのうち最速のものが選択されます。
 		/// @remark リージョンは https://doc.photonengine.com/en-us/pun/current/connection-and-authentication/regions を参照してください。
-		void connect(StringView userName, const Optional<String>& region = unspecified);
+		/// @remark Web版では必ず region を設定する必要があります。
+		bool connect(StringView userName, const Optional<String>& region = unspecified);
 
 		/// @brief Photon サーバから切断を試みます。
 		void disconnect();
@@ -291,6 +355,7 @@ namespace s3d
 		[[nodiscard]]
 		int32 getPingMillisec() const;
 
+# if not SIV3D_PLATFORM(WEB)
 		/// @brief 受信したデータのサイズ（バイト）を返します。
 		/// @return 受信したデータのサイズ（バイト）
 		[[nodiscard]]
@@ -300,25 +365,41 @@ namespace s3d
 		/// @return 送信したデータのサイズ（バイト）
 		[[nodiscard]]
 		int32 getBytesOut() const;
+# else
+		/// @brief 受信したデータのサイズ（バイト）を返します。
+		/// @return 受信したデータのサイズ（バイト）
+		/// @remark この関数は Web 版では利用できません。
+		[[nodiscard]]
+		int32 getBytesIn() const = delete;
+
+		/// @brief 送信したデータのサイズ（バイト）を返します。
+		/// @return 送信したデータのサイズ（バイト）
+		/// @remark この関数は Web 版では利用できません。
+		[[nodiscard]]
+		int32 getBytesOut() const = delete;
+# endif
 
 		/// @brief ランダムなルームに参加を試みます。
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param matchmakingMode マッチメイキングモード
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void joinRandomRoom(int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomRoom(int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief ランダムなルームに参加を試みます。
 		/// @param propertyFilter ルームプロパティのフィルタ
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param matchmakingMode マッチメイキングモード
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void joinRandomRoom(const HashTable<String,String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomRoom(const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param roomName ルーム名
-		[[deprecated("This overload has been deprecated. Use another overload instead.")]]
-		void joinRandomOrCreateRoom(int32 expectedMaxPlayers, RoomNameView roomName);
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		[[deprecated("This overload has been deprecated.")]]
+		bool joinRandomOrCreateRoom(int32 expectedMaxPlayers, RoomNameView roomName);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
 		/// @param roomName ルーム名
@@ -326,36 +407,45 @@ namespace s3d
 		/// @param propertyFilter ルームプロパティのフィルタ
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param matchmakingMode マッチメイキングモード
-		void joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<String, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<String, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 指定したルームに参加を試みます。
 		/// @param roomName ルーム名
-		void joinRoom(RoomNameView roomName, bool rejoin = false);
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool joinRoom(RoomNameView roomName);
 
 		/// @brief ルームの作成を試みます。
 		/// @param roomName ルーム名
 		/// @param maxPlayers ルームの最大人数（0の場合は指定なし）
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		void createRoom(RoomNameView roomName, int32 maxPlayers = 0);
+		bool createRoom(RoomNameView roomName, int32 maxPlayers = 0);
 
 		/// @brief ルームの作成を試みます。
 		/// @param roomName ルーム名
 		/// @param option ルーム作成オプション
-		void createRoom(RoomNameView roomName, const RoomCreateOption& option);
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool createRoom(RoomNameView roomName, const RoomCreateOption& option);
 
 		/// @brief 指定した名前のルームに参加を試み、無かった場合にルームの作成を試みます。
 		/// @param roomName ルーム名
 		/// @param option ルーム作成オプション
-		void joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
 
 		/// @brief 切断状態から、以前に参加していたルームに再参加を試みます。再参加可能な時間を過ぎている場合は失敗します。
-		void reconnectAndRejoin();
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool reconnectAndRejoin();
 
 		/// @brief ルームからの退出を試みます。
-		void leaveRoom(bool willComeBack = false);
+		/// @param willComeBack 退出後にreconnectAndRejoin()で再参加する場合 true
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
+		bool leaveRoom(bool willComeBack = false);
 
 		/// @brief 指定したイベントターゲットグループに参加します。
 		/// @param targetGroup ターゲットグループ　(1以上255以下の整数)
+		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		void joinEventTargetGroup(const uint8 targetGroup);
 
 		/// @brief 指定したイベントターゲットグループに参加します。
@@ -369,6 +459,15 @@ namespace s3d
 		/// @brief 指定したイベントターゲットグループから退出します。
 		/// @param targetGroups ターゲットグループの配列　(1以上255以下の整数)
 		void leaveEventTargetGroup(const Array<uint8>& targetGroups);
+
+		/// @brief ルームにイベントを送信します。
+		/// @param event イベントの送信オプション
+		/// @param args 送信するデータ
+		/// @remark Argsにはシリアライズ可能かつデフォルト構築可能な型のみが指定できます。
+		template<class... Args>
+		void sendEvent(const MultiplayerEvent& event, Args... args);
+
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 
 		/// @brief ルームにイベントを送信します。
 		/// @param eventCode イベントコード
@@ -598,21 +697,7 @@ namespace s3d
 		/// @param targets 送信先のプレイヤーのローカル ID, unspecified の場合は自分以外の全員
 		/// @remark ユーザ定義型を送信する際に利用します。
 		void sendEvent(uint8 eventCode, const Serializer<MemoryWriter>& writer, const Optional<Array<LocalPlayerID>>& targets = unspecified);
-
-		/*template<class... Args>
-		void sendEvent(uint8 eventCode, const Optional<Array<LocalPlayerID>>& targets = unspecified, Args... args)
-		{
-			sendEvent(eventCode, Serializer<MemoryWriter>{}(args...), targets);
-		}*/
-
-		template<class... Args>
-		void sendEvent(const MultiplayerEvent& event, Args... args)
-		{
-			sendEventImpl(event, Serializer<MemoryWriter>{}(args...));
-		}
-	private:
-		void sendEventImpl(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
-	public:
+# endif
 
 		/// @brief キャッシュされたイベントを削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
@@ -624,17 +709,18 @@ namespace s3d
 		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
 		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
 
+		/// @brief 自身のプレイヤー情報を返します。
+		LocalPlayer getLocalPlayer() const;
+
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名
 		[[nodiscard]]
 		String getUserName() const;
 
-		/// @brief 自身のユーザ名を設定します。
-		/// @param userName ユーザ名
-		void setUserName(StringView userName);
-
-		/// @brief 自動生成された自身のユーザ ID を取得します。
+		/// @brief 自身のユーザ ID を取得します。
 		/// @return 自身のユーザ ID
+		/// @remark ユーザ ID はconnect()を呼びだした後は変更することができません。
+		/// @remark ユーザー ID が未指定の場合にはユーザー名から自動的に生成されます。
 		[[nodiscard]]
 		String getUserID() const;
 
@@ -643,20 +729,20 @@ namespace s3d
 		[[nodiscard]]
 		LocalPlayerID getLocalPlayerID() const;
 
-		/// @brief ルーム内のホストのプレイヤー ID を返します。
-		/// @return ルーム内のホストのプレイヤー ID, ルームに参加していない場合は -1
+		/// @brief ホストプレイヤーのローカルプレイヤー ID を返します。
+		/// @return ホストプレイヤーのローカルプレイヤー ID, ルームに参加していない場合は -1
 		[[nodiscard]]
 		LocalPlayerID getHostLocalPlayerID() const;
+
+		/// @brief 存在するルームの情報リストを返します。 
+		/// @return 存在するルームの情報リスト
+		[[nodiscard]]
+		Array<RoomInfo> getRoomList() const;
 
 		/// @brief 存在するルームの名前一覧を返します。
 		/// @return 存在するルームの名前一覧
 		[[nodiscard]]
 		Array<RoomName> getRoomNameList() const;
-
-		/// @brief 存在するルームの情報一覧を返します。
-		/// @return 存在するルームの情報一覧
-		[[nodiscard]]
-		Array<RoomInfo> getRoomInfoList() const;
 
 		/// @brief 自分がロビーにいるかを返します。
 		/// @return ロビーにいる場合 true, それ以外の場合は false
@@ -674,9 +760,14 @@ namespace s3d
 		bool isInRoom() const;
 
 		/// @brief ネットワークの状態を返します。
+		/// @return 現在のネットワークの状態
+		[[nodiscard]]
 		NetworkState getNetworkState() const;
 
-		int32 getState() const;
+		/// @brief 現在参加しているルームの情報を返します。
+		/// @return 現在のルームの情報。
+		[[nodiscard]]
+		RoomInfo getCurrentRoom() const;
 
 		/// @brief 現在参加しているルーム名を返します。
 		/// @return 現在のルーム名。ルームに参加していない場合は空の文字列
@@ -723,7 +814,7 @@ namespace s3d
 
 		/// @brief プレイヤープロパティを取得します。
 		/// @param localPlayerID ルーム内のローカルプレイヤー ID
-		HashTable<String,String> getPlayerProperties(LocalPlayerID localPlayerID) const;
+		HashTable<String, String> getPlayerProperties(LocalPlayerID localPlayerID) const;
 
 		/// @brief 自身のプレイヤープロパティを追加します。
 		/// @param key キー
@@ -747,7 +838,7 @@ namespace s3d
 		String getRoomProperty(StringView key) const;
 
 		/// @brief ルームプロパティを取得します。
-		HashTable<String,String> getRoomProperties() const;
+		HashTable<String, String> getRoomProperties() const;
 
 		/// @brief ルームプロパティを追加します。
 		/// @param key キー
@@ -774,7 +865,9 @@ namespace s3d
 		/// @param keys キーリスト
 		void setVisibleRoomPropertyKeys(const Array<String>& keys);
 
-		void setHost(LocalPlayerID localPlayerID);
+		/// @brief 新たなルームのホストを設定します。
+		/// @param playerID 新たなルームのホストのローカルプレイヤー ID
+		void setHost(LocalPlayerID playerID);
 
 		/// @brief ルームの数を返します。
 		/// @return ルームの数
@@ -799,36 +892,37 @@ namespace s3d
 		/// @brief update() を呼ぶ必要がある状態であるかを返します。
 		/// @return  update() を呼ぶ必要がある状態である場合 true, それ以外の場合は false
 		[[nodiscard]]
-		bool isActive() const;
+		bool isActive() const noexcept;
 
 		/// @brief サーバへの接続に失敗したときに呼ばれます。
 		/// @param errorCode エラーコード
 		virtual void connectionErrorReturn(int32 errorCode);
 
 		/// @brief サーバに接続を試みた結果が通知されるときに呼ばれます。
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		/// @param region 接続した地域
 		/// @param cluster クラスター
+		/// @remark Web 版では region は常に connect 時に設定された文字列で、cluster は常に空文字列です。
 		virtual void connectReturn(int32 errorCode, const String& errorString, const String& region, const String& cluster);
 
 		/// @brief サーバから切断したときに呼ばれます。
 		virtual void disconnectReturn();
 
 		/// @brief 自身がルームから退出したときに呼ばれます。
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void leaveRoomReturn(int32 errorCode, const String& errorString);
 
 		/// @brief ランダムなルームへの参加を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID ルーム内のローカルプレイヤー ID
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void joinRandomRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
 		/// @brief ルームへの参加を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID ルーム内のローカルプレイヤー ID
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void joinRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
@@ -845,7 +939,7 @@ namespace s3d
 
 		/// @brief ルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void createRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
@@ -857,7 +951,7 @@ namespace s3d
 
 		/// @brief ランダムなルームへの参加またはルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
-		/// @param errorCode エラーコード
+		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void joinRandomOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString);
 
@@ -866,7 +960,7 @@ namespace s3d
 
 		/// @brief ルームのプロパティが変更されたときに呼ばれます。
 		/// @param changes 変更されたプロパティのキーと値
-		virtual void onRoomPropertiesChange(const HashTable<String,String>& changes);
+		virtual void onRoomPropertiesChange(const HashTable<String, String>& changes);
 
 		/// @brief プレイヤーのプロパティが変更されたときに呼ばれます。
 		/// @param playerID 変更されたプレイヤーのローカルプレイヤー ID
@@ -877,6 +971,15 @@ namespace s3d
 		/// @param newHostPlayerID 新しいホストのローカルプレイヤー ID
 		/// @param oldHostPlayerID 古いホストのローカルプレイヤー ID
 		virtual void onHostChange(LocalPlayerID newHostPlayerID, LocalPlayerID oldHostPlayerID);
+
+		/// @brief ルームのイベントを受信した際に呼ばれます。
+		/// @param playerID 送信者のローカルプレイヤー ID
+		/// @param eventCode イベントコード
+		/// @param data 受信したデータ
+		/// @remark ユーザ定義型を受信する際に利用します。
+		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, Deserializer<MemoryViewReader>& reader);
+
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 
 		/// @brief ルームのイベントを受信した際に呼ばれます。
 		/// @param playerID 送信者のローカルプレイヤー ID
@@ -1087,19 +1190,15 @@ namespace s3d
 		/// @param eventCode イベントコード
 		/// @param data 受信したデータ
 		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, const RoundRect& data);
-
-		/// @brief ルームのイベントを受信した際に呼ばれます。
-		/// @param playerID 送信者のローカルプレイヤー ID
-		/// @param eventCode イベントコード
-		/// @param data 受信したデータ
-		/// @remark ユーザ定義型を受信する際に利用します。
-		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, Deserializer<MemoryViewReader>& reader);
+# endif
 
 		/// @brief クライアントのシステムのタイムスタンプ（ミリ秒）を返します。
 		/// @return クライアントのシステムのタイムスタンプ（ミリ秒）
 		/// @remark この値に getServerTimeOffsetMillisec() の戻り値と足した値がサーバのタイムスタンプと一致します。
 		[[nodiscard]]
 		static int32 GetSystemTimeMillisec();
+
+		class PhotonDetail;
 
 		template<class T, class... Args>
 		using EventCallbackType = void (T::*)(LocalPlayerID, Args...);
@@ -1118,11 +1217,13 @@ namespace s3d
 
 	private:
 
-		class PhotonDetail;
-
+# if not SIV3D_PLATFORM(WEB)
 		std::unique_ptr<ExitGames::LoadBalancing::Listener> m_listener;
 
 		std::unique_ptr<ExitGames::LoadBalancing::Client> m_client;
+# else
+		std::shared_ptr<PhotonDetail> m_detail;
+# endif
 
 		String m_secretPhotonAppID;
 
@@ -1130,9 +1231,13 @@ namespace s3d
 
 		Optional<String> m_requestedRegion;
 
-		HashTable<uint8, detail::CustomEventReceiver> table;
+		ConnectionProtocol m_connectionProtocol = ConnectionProtocol::UDP;
 
 		bool m_isActive = false;
+
+		HashTable<uint8, detail::CustomEventReceiver> table;
+
+		void sendEventImpl(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
 	};
 
 	namespace detail
@@ -1155,10 +1260,15 @@ namespace s3d
 		};
 	}
 
+	template<class... Args>
+	void Multiplayer_Photon::sendEvent(const MultiplayerEvent& event, Args... args)
+	{
+		sendEventImpl(event, Serializer<MemoryWriter> {}(args...));
+	}
+
 	template<class T, class ...Args>
 	void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
 	{
-
 		table[eventCode] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
 	}
 }
