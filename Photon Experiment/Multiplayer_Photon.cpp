@@ -192,6 +192,7 @@ namespace s3d
 		Type m_value{};
 	};
 
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 	using PhotonColor		= CustomType_Photon<Color, 0>;
 	using PhotonColorF		= CustomType_Photon<ColorF, 1>;
 	using PhotonHSV			= CustomType_Photon<HSV, 2>;
@@ -257,6 +258,7 @@ namespace s3d
 		PhotonEllipse::unregisterType();
 		PhotonRoundRect::unregisterType();
 	}
+# endif
 }
 
 namespace s3d
@@ -268,6 +270,7 @@ namespace s3d
 		explicit PhotonDetail(Multiplayer_Photon& context)
 			: m_context{ context }
 		{
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 			m_receiveEventFunctions.emplace(uint8{ 0 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Color, 0>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 1 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<ColorF, 1>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 2 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<HSV, 2>(playerID, eventCode, data); });
@@ -287,6 +290,7 @@ namespace s3d
 			m_receiveEventFunctions.emplace(uint8{ 16 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Quad, 16>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 17 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Ellipse, 17>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 18 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<RoundRect, 18>(playerID, eventCode, data); });
+# endif
 		}
 
 		void onAvailableRegions(const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegions, [[maybe_unused]] const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegionServers) override
@@ -385,6 +389,7 @@ namespace s3d
 
 				if (mainType == L"Array")
 				{
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BOOLEAN:
@@ -451,6 +456,7 @@ namespace s3d
 					default:
 						break;
 					}
+# endif
 				}
 				else if (mainType == L"Blob")
 				{
@@ -478,6 +484,7 @@ namespace s3d
 			}
 			else
 			{
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 				switch (type)
 				{
 				case ExitGames::Common::TypeCode::BOOLEAN:
@@ -507,6 +514,7 @@ namespace s3d
 				default:
 					break;
 				}
+# endif
 			}
 		}
 
@@ -768,8 +776,9 @@ namespace s3d
 	Multiplayer_Photon::~Multiplayer_Photon()
 	{
 		disconnect();
-
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 		UnregisterTypes();
+# endif
 	}
 
 	void Multiplayer_Photon::init(const StringView secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, ConnectionProtocol protocol)
@@ -785,8 +794,9 @@ namespace s3d
 		m_verbose	= verbose.getBool();
 		m_connectionProtocol = protocol;
 		m_isActive	= false;
-
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 		RegisterTypes();
+# endif
 	}
 
 	bool Multiplayer_Photon::connect(const StringView userName_, const Optional<String>& region)

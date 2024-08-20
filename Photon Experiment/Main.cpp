@@ -29,6 +29,14 @@ struct ScrollBar
 
 	}
 
+	ScrollBar(double pageHeight, double viewHeight = Graphics2D::GetRenderTargetSize().y, const RectF& rect = RectF{ Arg::topRight(Graphics2D::GetRenderTargetSize().x - 2,0),10,Graphics2D::GetRenderTargetSize().y })
+		: rect(rect)
+		, viewHeight(viewHeight)
+		, pageHeight(pageHeight)
+	{
+
+	}
+
 	double sliderHeight() const
 	{
 		return Max(rect.h * viewHeight / pageHeight, 20.0);
@@ -143,7 +151,7 @@ struct ScrollBar
 
 	}
 
-	void draw(const ColorF& color = Palette::Dimgray) const
+	void draw(const ColorF& color = ColorF(Palette::Dimgray).withAlpha(0.8)) const
 	{
 		if (not existSlider()) return;
 
@@ -376,7 +384,7 @@ private:
 			return;
 		}
 	}
-
+# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const int32 data) override
 	{
 		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: int32(" << data << U") を受信";
@@ -401,6 +409,8 @@ private:
 	{
 		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: Array<String>" << data << U" を受信";
 	}
+
+# endif
 
 	// シリアライズデータを受信したときに呼ばれる関数をオーバーライドしてカスタマイズする
 	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, Deserializer<MemoryViewReader>& reader) override
@@ -448,7 +458,7 @@ void Main()
 
 	int32 state = -2;
 
-	ScrollBar scrollBar{ RectF{ 1268, 0, 10, 720 }, 720, 2000 };
+	ScrollBar scrollBar{ 2000 };
 	bool rejoin = false;
 
 	while (System::Update())
@@ -686,6 +696,6 @@ void Main()
 
 		}
 
-		scrollBar.draw();
+		scrollBar.draw(ColorF(Palette::White).withA(0.5));
 	}
 }
