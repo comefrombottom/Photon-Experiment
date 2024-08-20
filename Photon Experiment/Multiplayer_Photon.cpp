@@ -1018,15 +1018,15 @@ namespace s3d
 			return false;
 		}
 
-		auto state = getNetworkState();
+		auto state = getClientState();
 
-		if (state == NetworkState::InLobby)
+		if (state == ClientState::InLobby)
 		{
 			constexpr bool rejoin = true;
 			return m_client->opJoinRoom(detail::ToJString(m_lastJoinedRoomName), rejoin);
 		}
 
-		if (state == NetworkState::Disconnected)
+		if (state == ClientState::Disconnected)
 		{
 			return m_client->reconnectAndRejoin();
 		}
@@ -1813,11 +1813,11 @@ namespace s3d
 		return m_client->getIsInGameRoom();
 	}
 
-	Multiplayer_Photon::NetworkState Multiplayer_Photon::getNetworkState() const
+	Multiplayer_Photon::ClientState Multiplayer_Photon::getClientState() const
 	{
 		if (not m_client)
 		{
-			return NetworkState::Disconnected;
+			return ClientState::Disconnected;
 		}
 
 		using namespace ExitGames::LoadBalancing::PeerStates;
@@ -1825,7 +1825,7 @@ namespace s3d
 		switch (m_client->getState()) {
 		case Uninitialized:
 		case PeerCreated:
-			return NetworkState::Disconnected;
+			return ClientState::Disconnected;
 		case ConnectingToNameserver:
 		case ConnectedToNameserver:
 		case DisconnectingFromNameserver:
@@ -1833,29 +1833,29 @@ namespace s3d
 		case Connected:
 		case WaitingForCustomAuthenticationNextStepCall:
 		case Authenticated:
-			return NetworkState::ConnectingToLobby;
+			return ClientState::ConnectingToLobby;
 		case JoinedLobby:
-			return NetworkState::InLobby;
+			return ClientState::InLobby;
 		case DisconnectingFromMasterserver:
 		case ConnectingToGameserver:
 		case ConnectedToGameserver:
 		case AuthenticatedOnGameServer:
 		case Joining:
-			return NetworkState::JoiningRoom;
+			return ClientState::JoiningRoom;
 		case Joined:
-			return NetworkState::InRoom;
+			return ClientState::InRoom;
 		case Leaving:
 		case Left:
 		case DisconnectingFromGameserver:
 		case ConnectingToMasterserver:
 		case ConnectedComingFromGameserver:
 		case AuthenticatedComingFromGameserver:
-			return NetworkState::LeavingRoom;
+			return ClientState::LeavingRoom;
 		case Disconnecting:
 		case Disconnected:
-			return NetworkState::Disconnecting;
+			return ClientState::Disconnecting;
 		default:
-			return NetworkState::Disconnected;
+			return ClientState::Disconnected;
 		}
 	}
 
@@ -2292,7 +2292,7 @@ namespace s3d
 
 	bool Multiplayer_Photon::isActive() const noexcept
 	{
-		return getNetworkState() != NetworkState::Disconnected;
+		return getClientState() != ClientState::Disconnected;
 	}
 
 	void Multiplayer_Photon::connectionErrorReturn(const int32 errorCode)

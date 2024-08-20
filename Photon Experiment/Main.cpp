@@ -457,7 +457,7 @@ void Main()
 		{
 			auto t = scrollBar.createTransformer();
 
-			if (network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected)) {
+			if (network.isActive() != (network.getClientState() != Multiplayer_Photon::ClientState::Disconnected)) {
 				//Console << U"network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected):{},{}"_fmt(network.isActive(), network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected);
 			}
 

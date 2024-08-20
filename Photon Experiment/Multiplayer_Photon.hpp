@@ -209,10 +209,16 @@ namespace s3d
 		Milliseconds m_roomDestroyGracePeriod = 0ms;
 	};
 
+	/// @brief ランダム入室時のマッチメイキングモード
 	enum class MatchmakingMode : uint8
 	{
+		/// @brief 古いルームからうめていくように入室
 		FillOldestRoom,
+
+		/// @brief 順次均等に配分するように入室
 		Serial,
+
+		/// @brief ランダムに入室
 		Random,
 	};
 
@@ -326,7 +332,8 @@ namespace s3d
 	{
 	public:
 
-		enum class NetworkState : uint8 {
+		/// @brief クライアントの状態
+		enum class ClientState : uint8 {
 			Disconnected,
 			ConnectingToLobby,
 			InLobby,
@@ -803,10 +810,10 @@ namespace s3d
 		[[nodiscard]]
 		bool isInRoom() const;
 
-		/// @brief ネットワークの状態を返します。
-		/// @return 現在のネットワークの状態
+		/// @brief クライアントの状態を返します。
+		/// @return 現在のクライアントの状態
 		[[nodiscard]]
-		NetworkState getNetworkState() const;
+		ClientState getClientState() const;
 
 		/// @brief 現在参加しているルームの情報を返します。
 		/// @return 現在のルームの情報。
