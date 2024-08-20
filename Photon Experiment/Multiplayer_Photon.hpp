@@ -1233,6 +1233,8 @@ namespace s3d
 
 		ConnectionProtocol m_connectionProtocol = ConnectionProtocol::UDP;
 
+		String m_lastJoinedRoomName;
+
 		bool m_isActive = false;
 
 		HashTable<uint8, detail::CustomEventReceiver> table;

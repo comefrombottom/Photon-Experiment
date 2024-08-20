@@ -348,6 +348,10 @@ namespace s3d
 
 			const bool isSelf = (playerID == m_context.getLocalPlayerID());
 
+			if (isSelf) {
+				m_context.m_lastJoinedRoomName = m_context.getCurrentRoomName();
+			}
+
 			m_context.joinRoomEventAction(localPlayer, ids, isSelf);
 		}
 
@@ -934,7 +938,8 @@ namespace s3d
 			return false;
 		}
 
-		return m_client->opJoinRoom(detail::ToJString(roomName), true);
+		constexpr bool rejoin = false;
+		return m_client->opJoinRoom(detail::ToJString(roomName), rejoin);
 	}
 
 	bool Multiplayer_Photon::createRoom(const RoomNameView roomName, const int32 maxPlayers)
@@ -994,12 +999,20 @@ namespace s3d
 			return false;
 		}
 
-		if (getNetworkState() != NetworkState::Disconnected)
+		auto state = getNetworkState();
+
+		if (state == NetworkState::InLobby)
 		{
-			return false;
+			constexpr bool rejoin = true;
+			return m_client->opJoinRoom(detail::ToJString(m_lastJoinedRoomName), rejoin);
 		}
 
-		return m_client->reconnectAndRejoin();
+		if (state == NetworkState::Disconnected)
+		{
+			return m_client->reconnectAndRejoin();
+		}
+
+		return false;
 	}
 
 	bool Multiplayer_Photon::leaveRoom(bool willComeBack)
