@@ -431,6 +431,12 @@ private:
 			reader(message);
 			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
 		}
+
+		if (eventCode == 100) {
+			String message;
+			reader(message);
+			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
+		}
 	}
 };
 
@@ -525,6 +531,52 @@ void Main()
 				network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
 			}
 
+			if(SimpleGUI::Button(U"sendEvent TargetGroup", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"eventCode: 100 を　tagetgroup に 送信 >>>";
+				network.sendEvent(MultiplayerEvent(100, TargetGroup(1)), String(U"こんにちは。1"));
+				network.sendEvent(MultiplayerEvent(100, TargetGroup(2)), String(U"こんにちは。2"));
+				network.sendEvent(MultiplayerEvent(100, TargetGroup(3)), String(U"こんにちは。3"));
+				network.sendEvent(MultiplayerEvent(100, TargetGroup(4)), String(U"こんにちは。4"));
+			}
+
+			if (SimpleGUI::Button(U"join targetGroup 1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.joinEventTargetGroup(1);
+			}
+
+			if (SimpleGUI::Button(U"leave targetGroup 1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.leaveEventTargetGroup(1);
+			}
+
+			if (SimpleGUI::Button(U"join targetGroup {1,2}", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.joinEventTargetGroup({ 1,2 });
+			}
+
+			if (SimpleGUI::Button(U"leave targetGroup {1,2}", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.leaveEventTargetGroup({ 1,2 });
+			}
+
+			if (SimpleGUI::Button(U"join targetGroup All", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.joinAllEventTargetGroups();
+			}
+
+			if (SimpleGUI::Button(U"leave targetGroup All", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"targetGroup";
+				network.leaveAllEventTargetGroups();
+			}
+
+
 			if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"setPropaty";
@@ -543,26 +595,20 @@ void Main()
 				network.removeRoomProperty(U"key");
 			}
 
+			if (SimpleGUI::Button(U"removePropaty {} ", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			{
+				Print << U"removePropaty";
+				network.removeRoomProperty(Array<String>{});
+			}
+
 			if (SimpleGUI::Button(U"addPlayerProperty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"addPlayerProperty";
-				HashTable<String, String> prop{
-					{U"1", U"a"},
-					{U"2", U"b"},
-				};
-				network.addPlayerProperty(prop);
 			}
 
 			if (SimpleGUI::Button(U"addPlayerProperty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"addPlayerProperty2";
-				HashTable<String, String> prop{
-					{U"1", U"a"},
-					{U"2", U"e"},
-					{U"3", U"c"},
-					{U"4", U"d"},
-				};
-				network.addPlayerProperty(prop);
 			}
 
 			if (SimpleGUI::Button(U"getPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
@@ -600,10 +646,10 @@ void Main()
 			if (SimpleGUI::Button(U"cache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"cache >>>";
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u2"));
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f2"));
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheWithPlayer), String(U"こんにちは。u"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheWithPlayer), String(U"こんにちは。u2"));
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheWithRoom), String(U"こんにちは。f"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheWithRoom), String(U"こんにちは。f2"));
 
 			}
 

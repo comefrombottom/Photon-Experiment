@@ -120,26 +120,50 @@ namespace s3d
 		using CustomEventReceiver = std::pair<TypeErasedCallback, CallbackWrapper>;
 	}
 
+	/// @brief ルーム作成オプション
 	class RoomCreateOption
 	{
 	public:
 		[[nodiscard]]
 		constexpr RoomCreateOption() = default;
 
+		/// @brief ルームがロビーから見えるかを設定します。
+		/// @param isVisible ルームがロビーから見える場合 true, それ以外の場合は false
+		/// @return *this
 		RoomCreateOption& isVisible(bool isVisible);
 
+		/// @brief 他のプレイヤーがルームに参加できるかを設定します。
+		/// @param isOpen 他のプレイヤーがルームに参加できる場合 true, それ以外の場合は false
+		/// @return *this
 		RoomCreateOption& isOpen(bool isOpen);
 
+		/// @brief ルーム内のプレイヤーのユーザ ID を公開するかを設定します。
+		/// @param publishUserId ルーム内のプレイヤーのユーザ ID を公開する場合 true, それ以外の場合は false
+		/// @return *this
 		RoomCreateOption& publishUserId(bool publishUserId);
 
+		/// @brief ルームの最大人数を設定します。
+		/// @param maxPlayers ルームの最大人数 (0の場合は指定なし)
+		/// @return *this
 		RoomCreateOption& maxPlayers(int32 maxPlayers);
 
+		/// @brief ルームプロパティを設定します。
+		/// @param properties ルームプロパティ
+		/// @return *this
 		RoomCreateOption& properties(const HashTable<String, String>& properties);
 
+		/// @brief ロビーから参照可能なルームプロパティのキーリストを設定します。
+		/// @param keys キーリスト
+		/// @return *this
 		RoomCreateOption& visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
 
-		RoomCreateOption& rejoinGracePeriod(Milliseconds rejoinGracePeriod);
+		/// @brief ルームから切断されたプレイヤーが再参加できる猶予時間を設定します。
+		/// @param rejoinGracePeriod 再参加できる猶予時間 (0msの場合は再参加不可能、noneで無限)
+		/// @return *this
+		RoomCreateOption& rejoinGracePeriod(const Optional<Milliseconds>& rejoinGracePeriod = 0ms);
 
+		/// @brief 誰もいないルームが破棄されるまでの猶予時間を設定します。
+		/// @param roomDestroyGracePeriod 誰もいないルームが破棄されるまでの猶予時間。300000ms (5分) が最大値
 		RoomCreateOption& roomDestroyGracePeriod(Milliseconds roomDestroyGracePeriod);
 
 		[[nodiscard]]
@@ -161,7 +185,7 @@ namespace s3d
 		const Array<String>& visibleRoomPropertyKeys() const noexcept;
 
 		[[nodiscard]]
-		Milliseconds rejoinGracePeriod() const noexcept;
+		Optional<Milliseconds> rejoinGracePeriod() const noexcept;
 
 		[[nodiscard]]
 		Milliseconds roomDestroyGracePeriod() const noexcept;
@@ -180,7 +204,7 @@ namespace s3d
 
 		Array<String> m_visibleRoomPropertyKeys{};
 
-		Milliseconds m_rejoinGracePeriod = 0ms;
+		Optional<Milliseconds> m_rejoinGracePeriod = 0ms;
 
 		Milliseconds m_roomDestroyGracePeriod = 0ms;
 	};
@@ -199,22 +223,42 @@ namespace s3d
 		Others,
 
 		/// @brief 自分以外のプレイヤーに送信。送信者が部屋を離れるまでキャッシュされます。
-		Others_CacheUntilLeaveRoom,
+		Others_CacheWithPlayer,
 
 		/// @brief 自分以外のプレイヤーに送信。永続的にキャッシュされます。
-		Others_CacheForever,
+		Others_CacheWithRoom,
 
 		/// @brief 全員に送信
 		All,
 
 		/// @brief 全員に送信。送信者が部屋を離れるまでキャッシュされます。
-		All_CacheUntilLeaveRoom,
+		All_CacheWithPlayer,
 
 		/// @brief 全員に送信。永続的にキャッシュされます。
-		All_CacheForever,
+		All_CacheWithRoom,
 
 		/// @brief ホストに送信
 		Host,
+	};
+
+	/// @brief ターゲットグループ
+	class TargetGroup
+	{
+	public:
+		[[nodiscard]]
+		constexpr TargetGroup() = default;
+
+		/// @brief ターゲットグループを作成します。
+		/// @param targetGroup 1以上255以下の整数 (0の場合は全てのプレイヤー)
+		[[nodiscard]]
+		explicit TargetGroup(uint8 targetGroup) noexcept;
+
+		[[nodiscard]]
+		uint8 value() const noexcept;
+
+	private:
+
+		uint8 m_targetGroup = 0;
 	};
 
 	/// @brief 送信するイベントの情報
@@ -247,7 +291,7 @@ namespace s3d
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
 		[[nodiscard]]
-		MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex = 0);
+		MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
 
 		[[nodiscard]]
 		uint8 eventCode() const noexcept;
@@ -318,12 +362,6 @@ namespace s3d
 		/// @brief 自身のユーザ名を設定します。
 		/// @param name 自身のユーザ名
 		void setUserName(StringView name);
-
-		/// @brief 自身のユーザ ID を設定します。
-		/// @return 自身のユーザ ID
-		/// @remark ユーザ ID はconnect()を呼びだした後は変更することができません。
-		/// @remark ユーザ ID が未指定の場合にはユーザ名から自動的に生成されます。
-		void setUserID(StringView userID);
 
 		/// @brief Photon サーバへの接続を試みます。
 		/// @param userName ユーザ名
@@ -452,6 +490,9 @@ namespace s3d
 		/// @param targetGroups ターゲットグループの配列　(1以上255以下の整数)
 		void joinEventTargetGroup(const Array<uint8>& targetGroups);
 
+		/// @brief 全てのイベントターゲットグループに参加します。
+		void joinAllEventTargetGroups();
+
 		/// @brief 指定したイベントターゲットグループから退出します。
 		/// @param targetGroup ターゲットグループ　(1以上255以下の整数)
 		void leaveEventTargetGroup(const uint8 targetGroup);
@@ -459,6 +500,9 @@ namespace s3d
 		/// @brief 指定したイベントターゲットグループから退出します。
 		/// @param targetGroups ターゲットグループの配列　(1以上255以下の整数)
 		void leaveEventTargetGroup(const Array<uint8>& targetGroups);
+
+		/// @brief 全てのイベントターゲットグループから退出します。
+		void leaveAllEventTargetGroups();
 
 		/// @brief ルームにイベントを送信します。
 		/// @param event イベントの送信オプション
@@ -705,8 +749,8 @@ namespace s3d
 
 		/// @brief キャッシュされたイベントを削除します。targetsで指定したプレイヤーに紐づくイベントのみ削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
-		/// @param targets 対象のプレイヤーのローカル ID
-		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
+		/// @param targets 対象のプレイヤーのローカル ID 0 の場合はRoomCache, それ以外の場合は対応したPlayerCacheを指します。
+		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheWithPlayerによってキャッシュされたイベントのことです。○○○_CacheWithRoomによってキャッシュされたイベントはtargetsに0を指定することで削除できます。
 		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
 
 		/// @brief 自身のプレイヤー情報を返します。
@@ -821,10 +865,6 @@ namespace s3d
 		/// @param value 値
 		void addPlayerProperty(StringView key, StringView value);
 
-		/// @brief 自身のプレイヤープロパティを追加します。
-		/// @param property プロパティ
-		void addPlayerProperty(const HashTable<String, String>& property);
-
 		/// @brief 自身のプレイヤープロパティを削除します。
 		/// @param key キー
 		void removePlayerProperty(StringView key);
@@ -844,10 +884,6 @@ namespace s3d
 		/// @param key キー
 		/// @param value 値
 		void addRoomProperty(StringView key, StringView value);
-
-		/// @brief ルームプロパティを追加します。
-		/// @param property プロパティ
-		void addRoomProperty(const HashTable<String, String>& property);
 
 		/// @brief ルームプロパティを削除します。
 		/// @param key キー

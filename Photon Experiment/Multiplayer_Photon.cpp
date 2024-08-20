@@ -107,8 +107,15 @@ namespace s3d
 			roomOptions.setIsOpen(option.isOpen());
 			roomOptions.setCustomRoomProperties(ToPhotonHashtable(option.properties()));
 			roomOptions.setPublishUserID(option.publishUserId());
-			roomOptions.setEmptyRoomTtl(static_cast<int32>(option.rejoinGracePeriod().count()));
-			roomOptions.setPlayerTtl(static_cast<int32>(option.roomDestroyGracePeriod().count()));
+			if (option.rejoinGracePeriod())
+			{
+				roomOptions.setPlayerTtl(static_cast<int32>(option.rejoinGracePeriod()->count()));
+			}
+			else
+			{
+				roomOptions.setPlayerTtl(-1);
+			}
+			roomOptions.setEmptyRoomTtl(static_cast<int32>(option.roomDestroyGracePeriod().count()));
 			roomOptions.setPropsListedInLobby(ToJStringJVector(option.visibleRoomPropertyKeys()));
 			return roomOptions;
 		}
@@ -626,7 +633,7 @@ namespace s3d {
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::rejoinGracePeriod(Milliseconds rejoinGracePeriod)
+	RoomCreateOption& RoomCreateOption::rejoinGracePeriod(const Optional<Milliseconds>& rejoinGracePeriod)
 	{
 		m_rejoinGracePeriod = rejoinGracePeriod;
 		return *this;
@@ -668,7 +675,7 @@ namespace s3d {
 		return m_visibleRoomPropertyKeys;
 	}
 
-	Milliseconds RoomCreateOption::rejoinGracePeriod() const noexcept
+	Optional<Milliseconds> RoomCreateOption::rejoinGracePeriod() const noexcept
 	{
 		return m_rejoinGracePeriod;
 	}
@@ -676,6 +683,18 @@ namespace s3d {
 	Milliseconds RoomCreateOption::roomDestroyGracePeriod() const noexcept
 	{
 		return m_roomDestroyGracePeriod;
+	}
+
+	//TargetGroup
+
+	TargetGroup::TargetGroup(uint8 targetGroup) noexcept
+		: m_targetGroup(targetGroup)
+	{
+	}
+
+	uint8 TargetGroup::value() const noexcept
+	{
+		return m_targetGroup;
 	}
 
 	//MultiplayerEvent
@@ -687,7 +706,7 @@ namespace s3d {
 	{
 		if (not InRange<uint8>(eventCode, 1, 199))
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 	}
 
@@ -698,18 +717,18 @@ namespace s3d {
 	{
 		if (not InRange<uint8>(eventCode, 1, 199))
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 	}
 
-	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, uint8 targetGroup, uint8 priorityIndex)
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex)
 		: m_eventCode(eventCode)
-		, m_targetGroup(targetGroup)
+		, m_targetGroup(targetGroup.value())
 		, m_priorityIndex(priorityIndex)
 	{
 		if (not InRange<uint8>(eventCode, 1, 199))
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199"_fmt(eventCode) };
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 	}
 
@@ -1037,8 +1056,29 @@ namespace s3d
 			return;
 		}
 
+		if (targetGroups.isEmpty())
+		{
+			return;
+		}
+
+		if (targetGroups.contains(0)) {
+			throw Error{ U"[Multiplayer_Photon] The targetGroup must be in a range of 1 to 255" };
+		}
+
 		auto joinGroups = ExitGames::Common::JVector<nByte>(targetGroups.data(), static_cast<uint32>(targetGroups.size()));
-		m_client->opChangeGroups({}, &joinGroups);
+		m_client->opChangeGroups(nullptr, &joinGroups);
+	}
+
+	void Multiplayer_Photon::joinAllEventTargetGroups()
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		auto emptyJVector = ExitGames::Common::JVector<nByte>();
+
+		m_client->opChangeGroups(nullptr, &emptyJVector);
 	}
 
 	void Multiplayer_Photon::leaveEventTargetGroup(const uint8 targetGroup)
@@ -1053,8 +1093,29 @@ namespace s3d
 			return;
 		}
 
+		if (targetGroups.isEmpty())
+		{
+			return;
+		}
+
+		if (targetGroups.contains(0)) {
+			throw Error{ U"[Multiplayer_Photon] The targetGroup must be in a range of 1 to 255" };
+		}
+
 		auto leaveGroups = ExitGames::Common::JVector<nByte>(targetGroups.data(), static_cast<uint32>(targetGroups.size()));
-		m_client->opChangeGroups(&leaveGroups, {});
+		m_client->opChangeGroups(&leaveGroups, nullptr);
+	}
+
+	void Multiplayer_Photon::leaveAllEventTargetGroups()
+	{
+		if (not m_client)
+		{
+			return;
+		}
+
+		auto emptyJVector = ExitGames::Common::JVector<nByte>();
+
+		m_client->opChangeGroups(&emptyJVector, nullptr);
 	}
 }
 
@@ -1530,20 +1591,20 @@ namespace s3d
 		{
 		case EventReceiverOption::Others:
 			break;
-		case EventReceiverOption::Others_CacheUntilLeaveRoom:
+		case EventReceiverOption::Others_CacheWithPlayer:
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
 			break;
-		case EventReceiverOption::Others_CacheForever:
+		case EventReceiverOption::Others_CacheWithRoom:
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
 			break;
 		case EventReceiverOption::All:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			break;
-		case EventReceiverOption::All_CacheUntilLeaveRoom:
+		case EventReceiverOption::All_CacheWithPlayer:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
 			break;
-		case EventReceiverOption::All_CacheForever:
+		case EventReceiverOption::All_CacheWithRoom:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
 			break;
@@ -2018,21 +2079,6 @@ namespace s3d
 		m_client->getLocalPlayer().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
 	}
 
-	void Multiplayer_Photon::addPlayerProperty(const HashTable<String, String>& property)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().addCustomProperties(detail::ToPhotonHashtable(property));
-	}
-
 	void Multiplayer_Photon::removePlayerProperty(StringView key)
 	{
 		if (not m_client)
@@ -2114,21 +2160,6 @@ namespace s3d
 		}
 
 		m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::addRoomProperty(const HashTable<String, String>& property)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getCurrentlyJoinedRoom().addCustomProperties(detail::ToPhotonHashtable(property));
 	}
 
 	void Multiplayer_Photon::removeRoomProperty(StringView key)
