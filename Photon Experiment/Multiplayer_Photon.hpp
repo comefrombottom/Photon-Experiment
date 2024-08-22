@@ -356,7 +356,7 @@ namespace s3d
 			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger = {},const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 
 		/// @brief デストラクタ
@@ -775,16 +775,30 @@ namespace s3d
 		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
 
 		/// @brief 自身のプレイヤー情報を返します。
+		/// @return 自身のプレイヤー情報
+		[[nodiscard]]
 		LocalPlayer getLocalPlayer() const;
+
+		/// @brief 指定したローカルプレイヤー ID のプレイヤー情報を返します。
+		/// @param localPlayerID ローカルプレイヤー ID
+		/// @return プレイヤー情報
+		[[nodiscard]]
+		LocalPlayer getLocalPlayer(LocalPlayerID localPlayerID) const;
 
 		/// @brief 自身のユーザ名を返します。
 		/// @return 自身のユーザ名
 		[[nodiscard]]
 		String getUserName() const;
 
+		/// @brief 指定したローカルプレイヤー ID のユーザ名を返します。
+		/// @param localPlayerID ローカルプレイヤー ID
+		/// @return ユーザ名
+		[[nodiscard]]
+		String getUserName(LocalPlayerID localPlayerID) const;
+
 		/// @brief 自身のユーザ ID を取得します。
 		/// @return 自身のユーザ ID
-		/// @remark ユーザ ID はconnect()を呼びだした後は変更することができません。
+		/// @remark ユーザ ID は connect() を呼びだした後は変更することができません。
 		/// @remark ユーザー ID が未指定の場合にはユーザー名から自動的に生成されます。
 		[[nodiscard]]
 		String getUserID() const;

@@ -804,7 +804,7 @@ namespace s3d
 		m_connectionProtocol = protocol;
 		m_isActive = false;
 		m_logger = logger;
-		m_verbose = m_verbose;
+		m_verbose = verbose.getBool();
 # if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 		RegisterTypes();
 # endif
@@ -1687,6 +1687,37 @@ namespace s3d
 		return localPlayer;
 	}
 
+	LocalPlayer Multiplayer_Photon::getLocalPlayer(LocalPlayerID localPlayerID) const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+
+		if (not player)
+		{
+			return{};
+		}
+
+		LocalPlayer localPlayer
+		{
+			.localID = player->getNumber(),
+			.userName = detail::ToString(player->getName()),
+			.userID = detail::ToString(player->getUserID()),
+			.isHost = player->getIsMasterClient(),
+			.isActive = (not player->getIsInactive()),
+		};
+
+		return localPlayer;
+	}
+
 	String Multiplayer_Photon::getUserName() const
 	{
 		if (not m_client)
@@ -1695,6 +1726,28 @@ namespace s3d
 		}
 
 		return detail::ToString(m_client->getLocalPlayer().getName());
+	}
+
+	String Multiplayer_Photon::getUserName(LocalPlayerID localPlayerID) const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+
+		if (not player)
+		{
+			return{};
+		}
+
+		return detail::ToString(player->getName());
 	}
 
 	void Multiplayer_Photon::setUserName(StringView userName)
