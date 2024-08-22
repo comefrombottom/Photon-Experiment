@@ -189,8 +189,8 @@ public:
 
 	//using Multiplayer_Photon::Multiplayer_Photon;
 
-	MyNetwork(const std::string& appID, const String& appVersion, Verbose verbose)
-		: Multiplayer_Photon(appID, appVersion, verbose)
+	MyNetwork()
+		: Multiplayer_Photon(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console)
 	{
 		RegisterEventCallback(111, &MyNetwork::customDataReceive111);
 	}
@@ -200,190 +200,171 @@ private:
 	Array<LocalPlayer> m_localPlayers;
 
 	void customDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
-		Print << U"<<< 111を受信:{},{},{}"_fmt(i, d, v);
+		logger(U"<<< 111を受信:{},{},{}"_fmt(i, d, v));
 	}
 
-	void connectReturn([[maybe_unused]] const int32 errorCode, const String& errorString, const String& region, [[maybe_unused]] const String& cluster) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::connectReturn() [サーバへの接続を試みた結果を処理する]";
-		}
+	//void connectReturn([[maybe_unused]] const int32 errorCode, const String& errorString, const String& region, [[maybe_unused]] const String& cluster) override
+	//{
+	//	logger(U"MyNetwork::connectReturn() [サーバへの接続を試みた結果を処理する]");
 
-		if (errorCode)
-		{
-			if (m_verbose)
-			{
-				Print << U"[サーバへの接続に失敗] " << errorString;
-			}
+	//	if (errorCode)
+	//	{
+	//		logger(U"[サーバへの接続に失敗] ", errorString);
 
-			return;
-		}
+	//		return;
+	//	}
 
-		if (m_verbose)
-		{
-			Print << U"[サーバへの接続に成功]";
-			Print << U"[region: {}]"_fmt(region);
-			Print << U"[ユーザ名: {}]"_fmt(getUserName());
-			Print << U"[ユーザ ID: {}]"_fmt(getUserID());
-		}
+	//	logger(U"[サーバへの接続に成功]");
+	//	logger(U"[region: {}]"_fmt(region));
+	//	logger(U"[ユーザ名: {}]"_fmt(getUserName()));
+	//	logger(U"[ユーザ ID: {}]"_fmt(getUserID()));
+	//}
 
-		Scene::SetBackground(ColorF{ 0.4, 0.5, 0.6 });
-	}
+	//void disconnectReturn() override
+	//{
+	//	logger(U"MyNetwork::disconnectReturn() [サーバから切断したときに呼ばれる]");
 
-	void disconnectReturn() override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::disconnectReturn() [サーバから切断したときに呼ばれる]";
-		}
+	//	m_localPlayers.clear();
 
-		m_localPlayers.clear();
+	//	Scene::SetBackground(Palette::DefaultBackground);
+	//}
 
-		Scene::SetBackground(Palette::DefaultBackground);
-	}
+	//void joinRandomRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
+	//{
+	//	if (m_verbose)
+	//	{
+	//		Print << U"MyNetwork::joinRandomRoomReturn() [既存のランダムなルームに参加を試みた結果を処理する]";
+	//	}
 
-	void joinRandomRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::joinRandomRoomReturn() [既存のランダムなルームに参加を試みた結果を処理する]";
-		}
+	//	if (errorCode == NoRandomMatchFound)
+	//	{
+	//		if (m_verbose)
+	//		{
+	//			Print << U"[参加可能なランダムなルームが見つからなかった]";
+	//		}
 
-		if (errorCode == NoRandomMatchFound)
-		{
-			const RoomName roomName = (getUserName() + U"'s room-" + ToHex(RandomUint32()));
+	//		return;
+	//	}
+	//	else if (errorCode)
+	//	{
+	//		if (m_verbose)
+	//		{
+	//			Print << U"[既存のランダムなルームへの参加でエラーが発生] " << errorString;
+	//		}
 
-			if (m_verbose)
-			{
-				Print << U"[参加可能なランダムなルームが見つからなかった]";
-				Print << U"[自分でルーム " << roomName << U" を新規作成する]";
-			}
-			HashTable<String, String> prop{
-				{U"a", U"b"},
-				{U"a2", U"b2"}
-			};
-			createRoom(roomName,RoomCreateOption().properties(prop));
+	//		return;
+	//	}
 
-			return;
-		}
-		else if (errorCode)
-		{
-			if (m_verbose)
-			{
-				Print << U"[既存のランダムなルームへの参加でエラーが発生] " << errorString;
-			}
+	//	if (m_verbose)
+	//	{
+	//		Print << U"[既存のランダムなルームに参加できた]";
+	//	}
+	//}
 
-			return;
-		}
+	//void createRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
+	//{
+	//	if (m_verbose)
+	//	{
+	//		Print << U"MyNetwork::createRoomReturn() [ルームを新規作成した結果を処理する]";
+	//	}
 
-		if (m_verbose)
-		{
-			Print << U"[既存のランダムなルームに参加できた]";
-		}
-	}
+	//	if (errorCode)
+	//	{
+	//		if (m_verbose)
+	//		{
+	//			Print << U"[ルームの新規作成でエラーが発生] " << errorString;
+	//		}
 
-	void createRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::createRoomReturn() [ルームを新規作成した結果を処理する]";
-		}
+	//		return;
+	//	}
 
-		if (errorCode)
-		{
-			if (m_verbose)
-			{
-				Print << U"[ルームの新規作成でエラーが発生] " << errorString;
-			}
+	//	if (m_verbose)
+	//	{
+	//		Print << U"[ルーム " << getCurrentRoomName() << U" の作成に成功]";
+	//	}
+	//}
 
-			return;
-		}
+	//void joinRoomEventAction(const LocalPlayer& newPlayer, [[maybe_unused]] const Array<LocalPlayerID>& playerIDs, const bool isSelf) override
+	//{
+	//	if (m_verbose)
+	//	{
+	//		Print << U"MyNetwork::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]";
+	//	}
 
-		if (m_verbose)
-		{
-			Print << U"[ルーム " << getCurrentRoomName() << U" の作成に成功]";
-		}
-	}
+	//	m_localPlayers = getLocalPlayers();
 
-	void joinRoomEventAction(const LocalPlayer& newPlayer, [[maybe_unused]] const Array<LocalPlayerID>& playerIDs, const bool isSelf) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]";
-		}
+	//	if (m_verbose)
+	//	{
+	//		Print << U"[{} (ID: {}) がルームに参加した。ローカル ID: {}] {}"_fmt(newPlayer.userName, newPlayer.userID, newPlayer.localID, (isSelf ? U"(自分自身)" : U""));
 
-		m_localPlayers = getLocalPlayers();
+	//		Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
 
-		if (m_verbose)
-		{
-			Print << U"[{} (ID: {}) がルームに参加した。ローカル ID: {}] {}"_fmt(newPlayer.userName, newPlayer.userID, newPlayer.localID, (isSelf ? U"(自分自身)" : U""));
+	//		for (const auto& player : m_localPlayers)
+	//		{
+	//			Print << U"- [{}] {} (id: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
+	//		}
+	//	}
 
-			Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
+	//	if (isSelf)
+	//	{
+	//		// 自分がルームに参加したときの処理
+	//	}
+	//	else
+	//	{
+	//		// 他のプレイヤーがルームに参加したときの処理
+	//	}
+	//}
 
-			for (const auto& player : m_localPlayers)
-			{
-				Print << U"- [{}] {} (id: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
-			}
-		}
+	//void leaveRoomEventAction(const LocalPlayerID playerID, [[maybe_unused]] const bool isInactive) override
+	//{
+	//	if (m_verbose)
+	//	{
+	//		Print << U"MyNetwork::leaveRoomEventAction() [誰かがルームから退出したら呼ばれる]";
+	//	}
 
-		if (isSelf)
-		{
-			// 自分がルームに参加したときの処理
-		}
-		else
-		{
-			// 他のプレイヤーがルームに参加したときの処理
-		}
-	}
+	//	m_localPlayers = getLocalPlayers();
 
-	void leaveRoomEventAction(const LocalPlayerID playerID, [[maybe_unused]] const bool isInactive) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::leaveRoomEventAction() [誰かがルームから退出したら呼ばれる]";
-		}
+	//	if (m_verbose)
+	//	{
+	//		for (const auto& player : m_localPlayers)
+	//		{
+	//			if (player.localID == playerID)
+	//			{
+	//				Print << U"[{} (ID: {}, ローカル ID: {}) がルームから退出した]"_fmt(player.userName, player.userID, player.localID);
+	//			}
+	//		}
 
-		m_localPlayers = getLocalPlayers();
+	//		Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
 
-		if (m_verbose)
-		{
-			for (const auto& player : m_localPlayers)
-			{
-				if (player.localID == playerID)
-				{
-					Print << U"[{} (ID: {}, ローカル ID: {}) がルームから退出した]"_fmt(player.userName, player.userID, player.localID);
-				}
-			}
+	//		for (const auto& player : m_localPlayers)
+	//		{
+	//			Print << U"- [{}] {} (ID: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
+	//		}
+	//	}
+	//}
 
-			Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
+	//void leaveRoomReturn(int32 errorCode, const String& errorString) override
+	//{
+	//	if (m_verbose)
+	//	{
+	//		Print << U"MyNetwork::leaveRoomReturn() [ルームから退出したときに呼ばれる]";
+	//	}
 
-			for (const auto& player : m_localPlayers)
-			{
-				Print << U"- [{}] {} (ID: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
-			}
-		}
-	}
 
-	void leaveRoomReturn(int32 errorCode, const String& errorString) override
-	{
-		if (m_verbose)
-		{
-			Print << U"MyNetwork::leaveRoomReturn() [ルームから退出したときに呼ばれる]";
-		}
 
-		m_localPlayers.clear();
+	//	m_localPlayers.clear();
 
-		if (errorCode)
-		{
-			if (m_verbose)
-			{
-				Print << U"[ルームからの退出でエラーが発生] " << errorString;
-			}
+	//	if (errorCode)
+	//	{
+	//		if (m_verbose)
+	//		{
+	//			Print << U"[ルームからの退出でエラーが発生] " << errorString;
+	//		}
 
-			return;
-		}
-	}
+	//		return;
+	//	}
+	//}
+
 # if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
 	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const int32 data) override
 	{
@@ -454,7 +435,7 @@ void Main()
 {
 	Window::Resize(1280, 720);
 	const std::string secretAppID{ SIV3D_OBFUSCATE(PHOTON_APP_ID) };
-	MyNetwork network{ secretAppID, U"1.0", Verbose::Yes };
+	MyNetwork network;
 
 	int32 state = -2;
 
@@ -464,15 +445,25 @@ void Main()
 	while (System::Update())
 	{
 		scrollBar.update();
+
+		if (network.getClientState() == ClientState::Disconnected or network.getClientState() == ClientState::ConnectingToLobby)
+		{
+			Scene::Rect().draw(Palette::DefaultBackground);
+		}
+		else {
+			Scene::Rect().draw(ColorF{ 0.4, 0.5, 0.6 });
+		}
+
 		{
 			auto t = scrollBar.createTransformer();
 
-			if (network.isActive() != (network.getClientState() != Multiplayer_Photon::ClientState::Disconnected)) {
+			if (network.isActive() != (network.getClientState() != ClientState::Disconnected)) {
 				//Console << U"network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected):{},{}"_fmt(network.isActive(), network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected);
 			}
 
 			network.update();
 
+			
 			//int32 prev_state = state;
 			//state = network.getState();
 			//if (state != prev_state) {

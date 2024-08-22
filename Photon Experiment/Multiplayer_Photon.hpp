@@ -327,22 +327,21 @@ namespace s3d
 		Optional<Array<LocalPlayerID>> m_targetList;
 	};
 
+	/// @brief クライアントの状態
+	enum class ClientState : uint8 {
+		Disconnected,
+		ConnectingToLobby,
+		InLobby,
+		JoiningRoom,
+		InRoom,
+		LeavingRoom,
+		Disconnecting,
+	};
+
 	/// @brief マルチプレイヤー用クラス (Photon バックエンド)
 	class Multiplayer_Photon
 	{
 	public:
-
-		/// @brief クライアントの状態
-		enum class ClientState : uint8 {
-			Disconnected,
-			ConnectingToLobby,
-			InLobby,
-			JoiningRoom,
-			InRoom,
-			LeavingRoom,
-			Disconnecting,
-		};
-
 		/// @brief デフォルトコンストラクタ
 		SIV3D_NODISCARD_CXX20
 			Multiplayer_Photon() = default;
@@ -356,6 +355,10 @@ namespace s3d
 		SIV3D_NODISCARD_CXX20
 			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
+		SIV3D_NODISCARD_CXX20
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger = {},const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+
+
 		/// @brief デストラクタ
 		virtual ~Multiplayer_Photon();
 
@@ -363,8 +366,19 @@ namespace s3d
 		/// @param secretPhotonAppID Photon アプリケーション ID
 		/// @param photonAppVersion アプリケーションのバージョン
 		/// @param verbose デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
+		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		void init(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+
+
+		/// @brief マルチプレイヤー用クラスを作成します。
+		/// @param secretPhotonAppID Photon アプリケーション ID
+		/// @param photonAppVersion アプリケーションのバージョン
+		/// @param logger ログ出力関数
+		/// @param verbose デバッグ用の logger 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
+		/// @param protocol 通信に用いるプロトコル
+		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
+		void init(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger = {}, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief 自身のユーザ名を設定します。
 		/// @param name 自身のユーザ名
@@ -1249,6 +1263,14 @@ namespace s3d
 		template<class T, class... Args>
 		void RegisterEventCallback(uint8 eventCode, EventCallbackType<T, Args...> callback);
 
+		template<class... Args>
+		void logger(Args&&... args) const
+		{
+			if (m_verbose and m_logger) {
+				m_logger(Format(std::forward<Args>(args)...));
+			}
+		}
+
 	protected:
 
 		/// @brief 既存のランダムマッチが見つからなかった時のエラーコード
@@ -1281,6 +1303,8 @@ namespace s3d
 		bool m_isActive = false;
 
 		HashTable<uint8, detail::CustomEventReceiver> table;
+
+		std::function<void(StringView)> m_logger;
 
 		void sendEventImpl(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
 	};
