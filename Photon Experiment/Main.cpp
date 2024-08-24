@@ -193,6 +193,7 @@ public:
 		: Multiplayer_Photon(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console)
 	{
 		RegisterEventCallback(111, &MyNetwork::customDataReceive111);
+		RegisterEventCallback(112, &MyNetwork::customDataReceive112);
 	}
 
 private:
@@ -201,6 +202,10 @@ private:
 
 	void customDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
 		logger(U"<<< 111を受信:{},{},{}"_fmt(i, d, v));
+	}
+
+	void customDataReceive112(LocalPlayerID sender) {
+		logger(U"<<< 112を受信");
 	}
 
 	//void connectReturn([[maybe_unused]] const int32 errorCode, const String& errorString, const String& region, [[maybe_unused]] const String& cluster) override
@@ -463,7 +468,7 @@ void Main()
 
 			network.update();
 
-			
+
 			//int32 prev_state = state;
 			//state = network.getState();
 			//if (state != prev_state) {
@@ -481,7 +486,7 @@ void Main()
 			//PutText(U"state:{}"_fmt(state), Scene::Center());
 
 			double y = -20;
-			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y+=40) }, 160, not network.isActive()))
+			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y += 40) }, 160, not network.isActive()))
 			{
 				const String userName = U"Siv";
 				network.connect(userName, U"jp");
@@ -500,7 +505,7 @@ void Main()
 			if (SimpleGUI::Button(U"Create Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
 			{
 				const RoomName roomName = (network.getUserName() + U"'s room-" + ToHex(RandomUint32()));
-				network.createRoom(roomName,RoomCreateOption().rejoinGracePeriod(10s));
+				network.createRoom(roomName, RoomCreateOption().rejoinGracePeriod(10s));
 			}
 
 			{
@@ -528,13 +533,15 @@ void Main()
 
 			if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
-				Print << U"eventCode: 111 を送信 >>>";
+				Print << U"eventCode: 111, 112 を送信 >>>";
 				network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
+				network.sendEvent(MultiplayerEvent(112));
 			}
 
-			if(SimpleGUI::Button(U"sendEvent TargetGroup", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
+			if (SimpleGUI::Button(U"sendEvent TargetGroup", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"eventCode: 100 を　tagetgroup に 送信 >>>";
+				network.sendEvent(MultiplayerEvent(100), String(U"こんにちは。0"));
 				network.sendEvent(MultiplayerEvent(100, TargetGroup(1)), String(U"こんにちは。1"));
 				network.sendEvent(MultiplayerEvent(100, TargetGroup(2)), String(U"こんにちは。2"));
 				network.sendEvent(MultiplayerEvent(100, TargetGroup(3)), String(U"こんにちは。3"));
@@ -581,7 +588,7 @@ void Main()
 			if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"setPropaty";
-				network.addRoomProperty(U"key", U"value");
+				network.setRoomProperty(U"key", U"value");
 			}
 
 			if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
@@ -599,7 +606,7 @@ void Main()
 			if (SimpleGUI::Button(U"removePropaty {} ", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"removePropaty";
-				network.removeRoomProperty(Array<String>{});
+				network.removeRoomProperties(Array<String>{});
 			}
 
 			if (SimpleGUI::Button(U"addPlayerProperty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
@@ -627,7 +634,7 @@ void Main()
 			if (SimpleGUI::Button(U"removePlayerPropaty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"removePropaty";
-				network.removePlayerProperty({ U"1",U"2" });
+				network.removePlayerProperties({ U"1",U"2" });
 			}
 
 			if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, (y += 40) }, 200, network.isInLobby()))
@@ -647,10 +654,10 @@ void Main()
 			if (SimpleGUI::Button(U"cache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
 			{
 				Print << U"cache >>>";
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheWithPlayer), String(U"こんにちは。u"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheWithPlayer), String(U"こんにちは。u2"));
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheWithRoom), String(U"こんにちは。f"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheWithRoom), String(U"こんにちは。f2"));
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u2"));
+				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f"));
+				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f2"));
 
 			}
 
