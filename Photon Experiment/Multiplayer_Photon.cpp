@@ -340,7 +340,6 @@ namespace s3d
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::connectionErrorReturn() [サーバへの接続が失敗したときに呼ばれる]");
 			m_context.logger(U"- [Multiplayer_Photon] errorCode: ", errorCode);
-			m_context.m_isActive = false;
 			m_context.connectionErrorReturn(errorCode);
 		}
 
@@ -525,7 +524,6 @@ namespace s3d
 						else {
 							m_context.customEventAction(playerID, eventCode, reader);
 						}
-						//m_context.customEventAction(playerID, eventCode, reader);
 						break;
 					}
 					default:
@@ -576,11 +574,7 @@ namespace s3d
 
 			detail::LogIfError(m_context, errorCode, detail::ToString(errorString));
 
-			if (errorCode)
-			{
-				m_context.m_isActive = false;
-			}
-			else
+			if (not errorCode)
 			{
 				m_context.logger(U"- [Multiplayer_Photon] region: ", detail::ToString(region));
 				m_context.logger(U"- [Multiplayer_Photon] cluster: ", detail::ToString(cluster));
@@ -594,7 +588,6 @@ namespace s3d
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::disconnectReturn() [サーバから切断されたときに呼ばれる]");
 
-			m_context.m_isActive = false;
 			m_context.disconnectReturn();
 		}
 
@@ -973,7 +966,6 @@ namespace s3d
 			m_context.logger(U"- [Multiplayer_Photon] errorCode: ", errorCode);
 
 			m_clientState = ClientState::Disconnected;
-			m_context.m_isActive = false;
 			m_context.connectionErrorReturn(errorCode);
 		}
 
@@ -987,7 +979,6 @@ namespace s3d
 			if (errorCode)
 			{
 				m_clientState = ClientState::Disconnected;
-				m_context.m_isActive = false;
 			}
 			else
 			{
@@ -1021,7 +1012,6 @@ namespace s3d
 
 			m_clientState = ClientState::Disconnected;
 			m_context.disconnectReturn();
-			m_context.m_isActive = false;
 		}
 
 		void leaveRoomReturn(int32 errorCode, const String& errorString)
@@ -1677,7 +1667,6 @@ namespace s3d
 		m_photonAppVersion = photonAppVersion;
 		m_listener = std::make_unique<PhotonDetail>(*this);
 		m_connectionProtocol = protocol;
-		m_isActive = false;
 		m_logger = logger;
 		m_verbose = verbose.getBool();
 
@@ -1705,7 +1694,6 @@ namespace s3d
 		}
 
 		m_client->fetchServerTimestamp();
-		m_isActive = true;
 
 		return true;
 	}
@@ -2153,7 +2141,6 @@ namespace s3d
 		m_photonAppVersion = photonAppVersion;
 		m_logger = logger;
 		m_verbose = verbose.getBool();
-		m_isActive = false;
 
 		detail::siv3dPhotonInitClient(m_secretPhotonAppID.data(), m_photonAppVersion.data(), m_verbose, static_cast<uint8>(protocol));
 	}
@@ -2190,7 +2177,7 @@ namespace s3d
 			return false;
 		}
 
-		m_isActive = true;
+		m_detail->m_clientState = ClientState::ConnectingToLobby;
 
 		return true;
 	}

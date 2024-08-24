@@ -611,6 +611,9 @@ namespace s3d
 		template<class... Args>
 		void sendEvent(const MultiplayerEvent& event, Args... args);
 
+		/// @brief ルームにイベントを送信します。
+		/// @param event イベントの送信オプション
+		/// @param writer 送信するデータを書き込んだシリアライザ
 		void sendEvent(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
 
 # if SIV3D_MULTIPLAYER_PHOTON_LEGACY
@@ -1342,8 +1345,6 @@ namespace s3d
 
 		Optional<String> m_requestedRegion;
 
-		bool m_isActive = false;
-
 		HashTable<uint8, detail::CustomEventReceiver> table;
 
 		std::function<void(StringView)> m_logger;
@@ -1381,10 +1382,7 @@ namespace s3d
 	}
 
 	template<>
-	inline void Multiplayer_Photon::sendEvent<>(const MultiplayerEvent& event)
-	{
-		sendEvent(event, Serializer<MemoryWriter> {});
-	}
+	void Multiplayer_Photon::sendEvent<>(const MultiplayerEvent& event);
 
 	template<class T, class ...Args>
 	void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
