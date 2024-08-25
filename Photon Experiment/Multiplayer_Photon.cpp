@@ -3053,6 +3053,7 @@ namespace s3d
 /// [DESKTOP] Multiplayer_Photon
 namespace s3d
 {
+	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode)
 	{
 		if (not m_client)
@@ -3060,14 +3061,25 @@ namespace s3d
 			return;
 		}
 
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+
 		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE));
 	}
 
+	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets)
 	{
 		if (not m_client)
 		{
 			return;
+		}
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 
 		auto option = detail::MakeRaiseEventOptions(targets).setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE);
@@ -3619,11 +3631,17 @@ namespace s3d
 /// [WEB] Multiplayer_Photon
 namespace s3d
 {
+	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode)
 	{
 		if (not g_detail)
 		{
 			return;
+		}
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 
 		detail::siv3dPhotonRaiseEvent(
@@ -3633,11 +3651,17 @@ namespace s3d
 		);
 	}
 
+	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets)
 	{
 		if (not g_detail)
 		{
 			return;
+		}
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 
 		detail::siv3dPhotonRaiseEvent(

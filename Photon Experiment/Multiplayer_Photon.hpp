@@ -853,13 +853,15 @@ namespace s3d
 
 		/// @brief キャッシュされたイベントを削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
-		void removeEventCache(uint8 eventCode = 0);
+		template<class EventCode>
+		void removeEventCache(EventCode eventCode = 0);
 
 		/// @brief キャッシュされたイベントを削除します。targetsで指定したプレイヤーに紐づくイベントのみ削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
 		/// @param targets 対象のプレイヤーのローカル ID
 		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
-		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
+		template<class EventCode>
+		void removeEventCache(EventCode eventCode, const Array<LocalPlayerID>& targets);
 
 		/// @brief 自身のプレイヤー情報を返します。
 		LocalPlayer getLocalPlayer() const;
@@ -1391,7 +1393,7 @@ namespace s3d
 	template<class EventCode, class T, class ...Args>
 	void Multiplayer_Photon::RegisterEventCallback(EventCode eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
 	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
 		if (not InRange(static_cast<int>(eventCode), 1, 199))
 		{
@@ -1407,7 +1409,7 @@ namespace s3d
 		, m_receiverOption(receiverOption)
 		, m_priorityIndex(priorityIndex)
 	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
 		if (not InRange(static_cast<int>(eventCode), 1, 199))
 		{
@@ -1421,7 +1423,7 @@ namespace s3d
 		, m_targetList(targetList)
 		, m_priorityIndex(priorityIndex)
 	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
 		if (not InRange(static_cast<int>(eventCode), 1, 199))
 		{
@@ -1435,11 +1437,33 @@ namespace s3d
 		, m_targetGroup(targetGroup.value())
 		, m_priorityIndex(priorityIndex)
 	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
 		if (not InRange(static_cast<int>(eventCode), 1, 199))
 		{
 			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
+	}
+
+	template<>
+	void Multiplayer_Photon::removeEventCache(uint8 eventCode);
+
+	template<class EventCode>
+	void Multiplayer_Photon::removeEventCache(EventCode eventCode)
+	{
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
+
+		removeEventCache(static_cast<uint8>(eventCode));
+	}
+
+	template<>
+	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
+
+	template<class EventCode>
+	void Multiplayer_Photon::removeEventCache(EventCode eventCode, const Array<LocalPlayerID>& targets)
+	{
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
+
+		removeEventCache(static_cast<uint8>(eventCode), targets);
 	}
 }
