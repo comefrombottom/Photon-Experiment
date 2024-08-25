@@ -150,15 +150,15 @@ namespace s3d
 	public:
 
 		SIV3D_NODISCARD_CXX20
-			CustomType_Photon() = default;
+		CustomType_Photon() = default;
 
 		SIV3D_NODISCARD_CXX20
-			explicit CustomType_Photon(const Type& value)
+		explicit CustomType_Photon(const Type& value)
 			: ExitGames::Common::CustomType<CustomType_Photon<Type, customTypeIndex>, customTypeIndex>{}
 			, m_value{ value } {}
 
 		SIV3D_NODISCARD_CXX20
-			CustomType_Photon(const CustomType_Photon& toCopy)
+		CustomType_Photon(const CustomType_Photon& toCopy)
 			: ExitGames::Common::CustomType<CustomType_Photon<Type, customTypeIndex>, customTypeIndex>{}
 			, m_value{ toCopy.m_value } {}
 
@@ -214,25 +214,25 @@ namespace s3d
 		Type m_value{};
 	};
 
-	using PhotonColor = CustomType_Photon<Color, 0>;
-	using PhotonColorF = CustomType_Photon<ColorF, 1>;
-	using PhotonHSV = CustomType_Photon<HSV, 2>;
-	using PhotonPoint = CustomType_Photon<Point, 3>;
-	using PhotonVec2 = CustomType_Photon<Vec2, 4>;
-	using PhotonVec3 = CustomType_Photon<Vec3, 5>;
-	using PhotonVec4 = CustomType_Photon<Vec4, 6>;
-	using PhotonFloat2 = CustomType_Photon<Float2, 7>;
-	using PhotonFloat3 = CustomType_Photon<Float3, 8>;
-	using PhotonFloat4 = CustomType_Photon<Float4, 9>;
-	using PhotonMat3x2 = CustomType_Photon<Mat3x2, 10>;
-	using PhotonRect = CustomType_Photon<Rect, 11>;
-	using PhotonCircle = CustomType_Photon<Circle, 12>;
-	using PhotonLine = CustomType_Photon<Line, 13>;
-	using PhotonTriangle = CustomType_Photon<Triangle, 14>;
-	using PhotonRectF = CustomType_Photon<RectF, 15>;
-	using PhotonQuad = CustomType_Photon<Quad, 16>;
-	using PhotonEllipse = CustomType_Photon<Ellipse, 17>;
-	using PhotonRoundRect = CustomType_Photon<RoundRect, 18>;
+	using PhotonColor		= CustomType_Photon<Color, 0>;
+	using PhotonColorF		= CustomType_Photon<ColorF, 1>;
+	using PhotonHSV			= CustomType_Photon<HSV, 2>;
+	using PhotonPoint		= CustomType_Photon<Point, 3>;
+	using PhotonVec2		= CustomType_Photon<Vec2, 4>;
+	using PhotonVec3		= CustomType_Photon<Vec3, 5>;
+	using PhotonVec4		= CustomType_Photon<Vec4, 6>;
+	using PhotonFloat2		= CustomType_Photon<Float2, 7>;
+	using PhotonFloat3		= CustomType_Photon<Float3, 8>;
+	using PhotonFloat4		= CustomType_Photon<Float4, 9>;
+	using PhotonMat3x2		= CustomType_Photon<Mat3x2, 10>;
+	using PhotonRect		= CustomType_Photon<Rect, 11>;
+	using PhotonCircle		= CustomType_Photon<Circle, 12>;
+	using PhotonLine		= CustomType_Photon<Line, 13>;
+	using PhotonTriangle	= CustomType_Photon<Triangle, 14>;
+	using PhotonRectF		= CustomType_Photon<RectF, 15>;
+	using PhotonQuad		= CustomType_Photon<Quad, 16>;
+	using PhotonEllipse		= CustomType_Photon<Ellipse, 17>;
+	using PhotonRoundRect	= CustomType_Photon<RoundRect, 18>;
 
 	static void RegisterTypes()
 	{
@@ -292,7 +292,7 @@ namespace s3d
 		explicit PhotonDetail(Multiplayer_Photon& context)
 			: m_context{ context }
 		{
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+		# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 			m_receiveEventFunctions.emplace(uint8{ 0 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Color, 0>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 1 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<ColorF, 1>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 2 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<HSV, 2>(playerID, eventCode, data); });
@@ -312,7 +312,7 @@ namespace s3d
 			m_receiveEventFunctions.emplace(uint8{ 16 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Quad, 16>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 17 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Ellipse, 17>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 18 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<RoundRect, 18>(playerID, eventCode, data); });
-# endif
+		# endif
 		}
 
 		void onAvailableRegions(const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegions, [[maybe_unused]] const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegionServers) override
@@ -355,7 +355,7 @@ namespace s3d
 
 		void serverErrorReturn([[maybe_unused]] const int errorCode) override
 		{
-
+			
 		}
 
 		// 誰か（自分を含む）がルームに参加したら呼ばれるコールバック
@@ -373,11 +373,11 @@ namespace s3d
 
 			const LocalPlayer localPlayer
 			{
-				.localID = playerID,
-				.userName = detail::ToString(player.getName()),
-				.userID = detail::ToString(player.getUserID()),
-				.isHost = player.getIsMasterClient(),
-				.isActive = (not player.getIsInactive()),
+				.localID	= playerID,
+				.userName	= detail::ToString(player.getName()),
+				.userID		= detail::ToString(player.getUserID()),
+				.isHost		= player.getIsMasterClient(),
+				.isActive	= (not player.getIsInactive()),
 			};
 
 			const bool isSelf = (playerID == m_context.getLocalPlayerID());
@@ -407,7 +407,7 @@ namespace s3d
 		// ルームで他人が sendEvent したら呼ばれるコールバック
 		void customEventAction(const int playerID, const nByte eventCode, const ExitGames::Common::Object& _data) override
 		{
-# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
+		# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
 			const ExitGames::Common::ValueObject<uint8*> data{ _data };
 			const auto size = data.getSizes()[0];
 
@@ -424,7 +424,7 @@ namespace s3d
 			else {
 				m_context.customEventAction(playerID, eventCode, reader);
 			}
-# else
+		# else
 			const uint8 type = _data.getType();
 
 			if (type == ExitGames::Common::TypeCode::CUSTOM)
@@ -439,93 +439,93 @@ namespace s3d
 
 				if (mainType == L"Array")
 				{
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+				# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BOOLEAN:
-					{
-						const auto p = ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<bool>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::BYTE:
-					{
-						const auto p = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<uint8>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::SHORT:
-					{
-						const auto p = ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<int16>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::INTEGER:
-					{
-						const auto p = ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<int32>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::LONG:
-					{
-						const auto p = ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<int64>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::FLOAT:
-					{
-						const auto p = ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<float>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::DOUBLE:
-					{
-						const auto p = ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values"))).getSizes();
-						m_context.customEventAction(playerID, eventCode, Array<double>(p, (p + length)));
-						break;
-					}
-					case ExitGames::Common::TypeCode::STRING:
-					{
-						const auto values = ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values"))).getSizes();
-						Array<String> data(length);
-						for (short i = 0; i < length; ++i)
 						{
-							data[i] = detail::ToString(values[i]);
+							const auto p = ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<bool>(p, (p + length)));
+							break;
 						}
-						m_context.customEventAction(playerID, eventCode, data);
-						break;
-					}
+					case ExitGames::Common::TypeCode::BYTE:
+						{
+							const auto p = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<uint8>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::SHORT:
+						{
+							const auto p = ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<int16>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::INTEGER:
+						{
+							const auto p = ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<int32>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::LONG:
+						{
+							const auto p = ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<int64>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::FLOAT:
+						{
+							const auto p = ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<float>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::DOUBLE:
+						{
+							const auto p = ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values"))).getSizes();
+							m_context.customEventAction(playerID, eventCode, Array<double>(p, (p + length)));
+							break;
+						}
+					case ExitGames::Common::TypeCode::STRING:
+						{
+							const auto values = ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values"))).getSizes();
+							Array<String> data(length);
+							for (short i = 0; i < length; ++i)
+							{
+								data[i] = detail::ToString(values[i]);
+							}
+							m_context.customEventAction(playerID, eventCode, data);
+							break;
+						}
 					default:
 						break;
 					}
-# endif
+				# endif
 				}
 				else if (mainType == L"Blob")
 				{
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BYTE:
-					{
-						const auto values = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
-						const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
-						Deserializer<MemoryViewReader> reader{ values, length };
-						if (m_context.table.contains(eventCode)) {
-							auto& receiver = m_context.table[eventCode];
-							(receiver.second)(m_context, receiver.first, playerID, reader);
+						{
+							const auto values = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
+							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
+							Deserializer<MemoryViewReader> reader{ values, length };
+							if (m_context.table.contains(eventCode)) {
+								auto& receiver = m_context.table[eventCode];
+								(receiver.second)(m_context, receiver.first, playerID, reader);
+							}
+							else {
+								m_context.customEventAction(playerID, eventCode, reader);
+							}
+							break;
 						}
-						else {
-							m_context.customEventAction(playerID, eventCode, reader);
-						}
-						break;
-					}
 					default:
 						break;
 					}
@@ -563,7 +563,7 @@ namespace s3d
 					break;
 				}
 			}
-# endif
+		# endif
 		}
 
 		// connect() の結果を通知するコールバック
@@ -594,7 +594,7 @@ namespace s3d
 		void leaveRoomReturn(const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
-
+			
 			detail::LogIfError(m_context, errorCode, errorString);
 
 			m_context.leaveRoomReturn(errorCode, detail::ToString(errorString));
@@ -634,7 +634,7 @@ namespace s3d
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
 			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
-
+			
 			detail::LogIfError(m_context, errorCode, errorString);
 
 			m_context.joinOrCreateRoomReturn(playerID, errorCode, detail::ToString(errorString));
@@ -684,14 +684,14 @@ namespace s3d
 
 		HashTable<uint8, std::function<void(const int, const nByte, const ExitGames::Common::Object&)>> m_receiveEventFunctions;
 
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		template <class Type, uint8 N>
 		void receivedCustomType(const int playerID, const nByte eventCode, const ExitGames::Common::Object& eventContent)
 		{
 			const auto value = ExitGames::Common::ValueObject<CustomType_Photon<Type, N>>(eventContent).getDataCopy().getValue();
 			m_context.customEventAction(playerID, eventCode, value);
 		}
-# endif
+	# endif
 	};
 }
 # else
@@ -701,115 +701,115 @@ namespace s3d::detail
 	extern "C"
 	{
 		__attribute__((import_name("siv3dPhotonInitClient")))
-			void siv3dPhotonInitClient(const char32* appID, const char32* appVersion, bool verbose, uint8 protocol);
+		void siv3dPhotonInitClient(const char32* appID, const char32* appVersion, bool verbose, uint8 protocol);
 
 		__attribute__((import_name("siv3dPhotonConnect")))
-			bool siv3dPhotonConnect(const char32* userID, const char32* region);
+		bool siv3dPhotonConnect(const char32* userID, const char32* region);
 
 		__attribute__((import_name("siv3dPhotonDisconnect")))
-			void siv3dPhotonDisconnect();
+		void siv3dPhotonDisconnect();
 
 		__attribute__((import_name("siv3dPhotonService")))
-			void siv3dPhotonService();
+		void siv3dPhotonService();
 
 		__attribute__((import_name("siv3dPhotonIsInLobby")))
-			bool siv3dPhotonIsInLobby();
+		bool siv3dPhotonIsInLobby();
 
 		__attribute__((import_name("siv3dPhotonIsJoinedToRoom")))
-			bool siv3dPhotonIsJoinedToRoom();
+		bool siv3dPhotonIsJoinedToRoom();
 
 		__attribute__((import_name("siv3dPhotonGetServerTime")))
-			int32 siv3dPhotonGetServerTime();
+		int32 siv3dPhotonGetServerTime();
 
 		__attribute__((import_name("siv3dPhotonGetRoundTripTime")))
-			int32 siv3dPhotonGetRoundTripTime();
+		int32 siv3dPhotonGetRoundTripTime();
 
 		__attribute__((import_name("siv3dPhotonJoinRandomRoom")))
-			bool siv3dPhotonJoinRandomRoom(uint8 maxPlayers, MatchmakingMode matchmakingMode, const char32* filter);
+		bool siv3dPhotonJoinRandomRoom(uint8 maxPlayers, MatchmakingMode matchmakingMode, const char32* filter);
 
 		__attribute__((import_name("siv3dPhotonJoinRandomOrCreateRoom")))
-			bool siv3dPhotonJoinRandomOrCreateRoom(const char32* roomName, const char32* opt, uint8 maxPlayers, MatchmakingMode matchmakingMode, const char32* filter);
+		bool siv3dPhotonJoinRandomOrCreateRoom(const char32* roomName, const char32* opt, uint8 maxPlayers, MatchmakingMode matchmakingMode, const char32* filter);
 
 		__attribute__((import_name("siv3dPhotonJoinRoom")))
-			bool siv3dPhotonJoinRoom(const char32* roomName, bool rejoin);
+		bool siv3dPhotonJoinRoom(const char32* roomName, bool rejoin);
 
 		__attribute__((import_name("siv3dPhotonCreateRoom")))
-			bool siv3dPhotonCreateRoom(bool join, const char32* roomName, const char32* roomOpt);
+		bool siv3dPhotonCreateRoom(bool join, const char32* roomName, const char32* roomOpt);
 
 		__attribute__((import_name("siv3dPhotonReconnectToMaster")))
-			bool siv3dPhotonReconnectToMaster();
+		bool siv3dPhotonReconnectToMaster();
 
 		__attribute__((import_name("siv3dPhotonLeaveRoom")))
-			void siv3dPhotonLeaveRoom(bool willComeBack);
+		void siv3dPhotonLeaveRoom(bool willComeBack);
 
 		__attribute__((import_name("siv3dPhotonChangeInterestGroup")))
-			void siv3dPhotonChangeInterestGroup(int32 joinLen, const uint8* join, int32 leaveLen, const uint8* leave);
+		void siv3dPhotonChangeInterestGroup(int32 joinLen, const uint8* join, int32 leaveLen, const uint8* leave);
 
 		__attribute__((import_name("siv3dPhotonRaiseEvent")))
-			void siv3dPhotonRaiseEvent(uint8 eventCode, const char* data, const char32* opt);
+		void siv3dPhotonRaiseEvent(uint8 eventCode, const char* data, const char32* opt);
 
 		__attribute__((import_name("siv3dPhotonGetRoomList")))
-			void siv3dPhotonGetRoomList(Array<RoomInfo>* array);
+		void siv3dPhotonGetRoomList(Array<RoomInfo>* array);
 
 		__attribute__((import_name("siv3dPhotonGetRoomNameList")))
-			void siv3dPhotonGetRoomNameList(Array<RoomName>* array);
+		void siv3dPhotonGetRoomNameList(Array<RoomName>* array);
 
 		__attribute__((import_name("siv3dPhotonGetCurrentRoom")))
-			void siv3dPhotonGetCurrentRoom(char32** name, int32* playerCount, int32* maxPlayers, bool* isOpen);
+		void siv3dPhotonGetCurrentRoom(char32** name, int32* playerCount, int32* maxPlayers, bool* isOpen);
 
 		__attribute__((import_name("siv3dPhotonGetRoomPlayerList")))
-			void siv3dPhotonGetRoomPlayerList(Array<LocalPlayer>* array, LocalPlayerID filter);
+		void siv3dPhotonGetRoomPlayerList(Array<LocalPlayer>* array, LocalPlayerID filter);
 
 		__attribute__((import_name("siv3dPhotonGetRoomPlayerIDList")))
-			void siv3dPhotonGetRoomPlayerIDList(Array<LocalPlayerID>* array);
+		void siv3dPhotonGetRoomPlayerIDList(Array<LocalPlayerID>* array);
 
 		__attribute__((import_name("siv3dPhotonSetCurrentRoomVisible")))
-			void siv3dPhotonSetCurrentRoomVisible(bool isVisible);
+		void siv3dPhotonSetCurrentRoomVisible(bool isVisible);
 
 		__attribute__((import_name("siv3dPhotonSetCurrentRoomOpen")))
-			void siv3dPhotonSetCurrentRoomOpen(bool isOpen);
+		void siv3dPhotonSetCurrentRoomOpen(bool isOpen);
 
 		__attribute__((import_name("siv3dPhotonUpdateLocalPlayer")))
-			void siv3dPhotonUpdateLocalPlayer(LocalPlayerID* localID, bool* isHost, bool* isActive);
+		void siv3dPhotonUpdateLocalPlayer(LocalPlayerID* localID, bool* isHost, bool* isActive);
 
 		__attribute__((import_name("siv3dPhotonGetMasterClientID")))
-			LocalPlayerID siv3dPhotonGetMasterClientID();
+		LocalPlayerID siv3dPhotonGetMasterClientID();
 
 		__attribute__((import_name("siv3dPhotonSetUserName")))
-			void siv3dPhotonSetUserName(const char32* userName);
+		void siv3dPhotonSetUserName(const char32* userName);
 
 		__attribute__((import_name("siv3dPhotonSetMasterClient")))
-			void siv3dPhotonSetMasterClient(LocalPlayerID localPlayerID);
+		void siv3dPhotonSetMasterClient(LocalPlayerID localPlayerID);
 
 		__attribute__((import_name("siv3dPhotonGetPlayerCustomProperty")))
-			char32* siv3dPhotonGetPlayerCustomProperty(const char32* key, LocalPlayerID actor);
+		char32* siv3dPhotonGetPlayerCustomProperty(const char32* key, LocalPlayerID actor);
 
 		__attribute__((import_name("siv3dPhotonGetPlayerCustomProperties")))
-			void siv3dPhotonGetPlayerCustomProperties(HashTable<String, String>* table, LocalPlayerID actor);
+		void siv3dPhotonGetPlayerCustomProperties(HashTable<String, String>* table, LocalPlayerID actor);
 
 		__attribute__((import_name("siv3dPhotonSetPlayerCustomProperty")))
-			void siv3dPhotonSetPlayerCustomProperty(const char32* key, const char32* value);
+		void siv3dPhotonSetPlayerCustomProperty(const char32* key, const char32* value);
 
 		__attribute__((import_name("siv3dPhotonRemovePlayerCustomProperties")))
-			char32* siv3dPhotonRemovePlayerCustomProperties(int32 len, const char32** keys);
+		char32* siv3dPhotonRemovePlayerCustomProperties(int32 len, const char32** keys);
 
 		__attribute__((import_name("siv3dPhotonGetRoomCustomProperty")))
-			char32* siv3dPhotonGetRoomCustomProperty(const char32* key);
+		char32* siv3dPhotonGetRoomCustomProperty(const char32* key);
 
 		__attribute__((import_name("siv3dPhotonGetRoomCustomProperties")))
-			void siv3dPhotonGetRoomCustomProperties(HashTable<String, String>* table);
+		void siv3dPhotonGetRoomCustomProperties(HashTable<String, String>* table);
 
 		__attribute__((import_name("siv3dPhotonSetRoomCustomProperty")))
-			void siv3dPhotonSetRoomCustomProperty(const char32* key, const char32* value);
+		void siv3dPhotonSetRoomCustomProperty(const char32* key, const char32* value);
 
 		__attribute__((import_name("siv3dPhotonRemoveRoomCustomProperties")))
-			char32* siv3dPhotonRemoveRoomCustomProperties(int32 len, const char32** keys);
+		char32* siv3dPhotonRemoveRoomCustomProperties(int32 len, const char32** keys);
 
 		__attribute__((import_name("siv3dPhotonGetVisibleRoomPropertyKeys")))
-			void siv3dPhotonGetVisibleRoomPropertyKeys(Array<String>* array);
+		void siv3dPhotonGetVisibleRoomPropertyKeys(Array<String>* array);
 
 		__attribute__((import_name("siv3dPhotonSetVisibleRoomPropertyKeys")))
-			void siv3dPhotonSetVisibleRoomPropertyKeys(int32 len, const char32** keys);
+		void siv3dPhotonSetVisibleRoomPropertyKeys(int32 len, const char32** keys);
 	}
 }
 
@@ -836,7 +836,7 @@ namespace s3d
 		RoomInfo m_currentRoom;
 
 		bool m_isVisibleInCurrentRoom;
-
+		
 		String m_lastJoinedRoomName = U"";
 
 		bool joinRandomRoom(const int32 expectedMaxPlayers, MatchmakingMode matchmakingMode, StringView filter)
@@ -977,7 +977,7 @@ namespace s3d
 			m_context.logger(U"[Multiplayer_Photon] region: ", region);
 
 			detail::LogIfError(m_context, errorCode, errorString);
-
+			
 			if (errorCode)
 			{
 				m_clientState = ClientState::Disconnected;
@@ -1001,7 +1001,7 @@ namespace s3d
 				m_clientState = ClientState::InLobby;
 				joinRoom(m_lastJoinedRoomName, true);
 			}
-
+			
 			connectReturn(errorCode, errorString);
 		}
 
@@ -1048,7 +1048,7 @@ namespace s3d
 			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
 
 			detail::LogIfError(m_context, errorCode, errorString);
-
+			
 			if (not errorCode)
 			{
 				m_clientState = ClientState::JoiningRoom;
@@ -1092,7 +1092,7 @@ namespace s3d
 		void joinRoomEventAction(LocalPlayerID playerID, bool myself)
 		{
 			Array<LocalPlayerID> localPlayerIDs = getLocalPlayerIDList();
-
+			
 			updateCurrentRoom();
 
 			m_lastJoinedRoomName = m_currentRoom.name;
@@ -1116,15 +1116,15 @@ namespace s3d
 
 		void customEventAction(LocalPlayerID playerID, uint8 code, char* message)
 		{
-			Blob blob = Base64::Decode(message, s3d::SkipValidation::Yes);
+			Blob blob = Base64::Decode(message, s3d::SkipValidation::Yes); 
 
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
 			m_context.logger(U"[Multiplayer_Photon] playerID: ", playerID);
 			m_context.logger(U"[Multiplayer_Photon] eventCode: ", code);
 			m_context.logger(U"[Multiplayer_Photon] data: ", blob.size(), U" bytes (serialized)");
 
-			Deserializer<MemoryViewReader> deserializer{ blob.data(), blob.size() };
-
+			Deserializer<MemoryViewReader> deserializer{blob.data(), blob.size()};
+			
 			m_context.customEventAction(playerID, code, deserializer);
 		}
 
@@ -1166,21 +1166,21 @@ namespace s3d::detail
 	extern "C"
 	{
 		__attribute__((used, export_name("siv3dPhotonGetRoomListCallback")))
-			void siv3dPhotonGetRoomListCallback(Array<RoomInfo>* array, char32* name, int32 maxPlayers, int32 playerCount, bool isOpen)
+		void siv3dPhotonGetRoomListCallback(Array<RoomInfo>* array, char32* name, int32 maxPlayers, int32 playerCount, bool isOpen)
 		{
 			array->push_back({ String(name), playerCount, maxPlayers, isOpen });
 			free(name);
 		}
 
 		__attribute__((used, export_name("siv3dPhotonGetRoomNameListCallback")))
-			void siv3dPhotonGetRoomNameListCallback(Array<RoomName>* array, char32* name)
+		void siv3dPhotonGetRoomNameListCallback(Array<RoomName>* array, char32* name)
 		{
 			array->push_back(String(name));
 			free(name);
 		}
 
 		__attribute__((used, export_name("siv3dPhotonGetRoomPlayerListCallback")))
-			void siv3dPhotonGetRoomPlayerListCallback(Array<LocalPlayer>* array, int32 id, char32* userName, char32* userID, bool isHost, bool isActive)
+		void siv3dPhotonGetRoomPlayerListCallback(Array<LocalPlayer>* array, int32 id, char32* userName, char32* userID, bool isHost, bool isActive)
 		{
 			array->push_back(LocalPlayer{ id, String(userName), String(userID), isHost, isActive });
 			free(userName);
@@ -1188,27 +1188,27 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonGetRoomPlayerIDListCallback")))
-			void siv3dPhotonGetRoomPlayerIDListCallback(Array<LocalPlayerID>* array, int32 id)
+		void siv3dPhotonGetRoomPlayerIDListCallback(Array<LocalPlayerID>* array, int32 id)
 		{
 			array->push_back(id);
 		}
 
 		enum class PhotonCallbackCode : uint8 {
-			ConnectionErrorReturn = 1,
-			ConnectReturn = 11,
-			ReconnectReturn = 12,
-			DisconnectReturn = 13,
-			LeaveRoomReturn = 21,
-			JoinRandomRoomReturn = 22,
-			JoinRandomOrCreateRoomReturn = 23,
-			JoinRoomReturn = 24,
-			CreateRoomReturn = 25,
-		};
+        	ConnectionErrorReturn = 1,
+        	ConnectReturn = 11,
+        	ReconnectReturn = 12,
+        	DisconnectReturn = 13,
+        	LeaveRoomReturn = 21,
+        	JoinRandomRoomReturn = 22,
+        	JoinRandomOrCreateRoomReturn = 23,
+        	JoinRoomReturn = 24,
+        	CreateRoomReturn = 25,
+    	};
 
 		__attribute__((used, export_name("siv3dPhotonGeneralCallback")))
-			void siv3dPhotonGeneralCallback(uint8 callback, int32 errorCode, char32* errorString_, LocalPlayerID player)
+		void siv3dPhotonGeneralCallback(uint8 callback, int32 errorCode, char32* errorString_, LocalPlayerID player)
 		{
-			String errorString{ errorString_ != nullptr ? errorString_ : U"" };
+			String errorString { errorString_ != nullptr ? errorString_ : U"" };
 
 			if (g_detail)
 			{
@@ -1243,12 +1243,12 @@ namespace s3d::detail
 					break;
 				};
 			}
-
+			
 			free(static_cast<void*>(errorString_));
 		}
 
 		__attribute__((used, export_name("siv3dPhotonAppStateChangeCallback")))
-			void siv3dPhotonAppStateChangeCallback(int32 countGamesRunning, int32 countPlayersIngame, int32 countPlayersOnline)
+		void siv3dPhotonAppStateChangeCallback(int32 countGamesRunning, int32 countPlayersIngame, int32 countPlayersOnline)
 		{
 			if (not g_detail) return;
 
@@ -1258,15 +1258,15 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonActorJoinCallback")))
-			void siv3dPhotonActorJoinCallback(LocalPlayerID playerID, bool myself)
+		void siv3dPhotonActorJoinCallback(LocalPlayerID playerID, bool myself)
 		{
 			if (not g_detail) return;
-
+			
 			g_detail->joinRoomEventAction(playerID, myself);
 		}
 
 		__attribute__((used, export_name("siv3dPhotonActorLeaveCallback")))
-			void siv3dPhotonActorLeaveCallback(LocalPlayerID playerID, bool isSuspended)
+		void siv3dPhotonActorLeaveCallback(LocalPlayerID playerID, bool isSuspended)
 		{
 			if (not g_detail) return;
 
@@ -1274,7 +1274,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonCustomEventCallback")))
-			void siv3dPhotonCustomEventCallback(LocalPlayerID playerID, uint8 code, char* message)
+		void siv3dPhotonCustomEventCallback(LocalPlayerID playerID, uint8 code, char* message)
 		{
 			if (not g_detail) return;
 
@@ -1284,7 +1284,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonGetCustomPropertiesCallback")))
-			void siv3dPhotonGetCustomPropertiesCallback(HashTable<String, String>* table, char32* key_, char32* value_)
+		void siv3dPhotonGetCustomPropertiesCallback(HashTable<String, String>* table, char32* key_, char32* value_)
 		{
 			(*table)[StringView(key_)] = String(value_);
 
@@ -1293,7 +1293,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonGetVisibleRoomPropertyKeysCallback")))
-			void siv3dPhotonGetVisibleRoomPropertyKeysCallback(Array<String>* array, char32* key_)
+		void siv3dPhotonGetVisibleRoomPropertyKeysCallback(Array<String>* array, char32* key_)
 		{
 			array->push_back(String(key_));
 
@@ -1301,7 +1301,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonOnRoomListUpdateCallback")))
-			void siv3dPhotonOnRoomListUpdateCallback()
+		void siv3dPhotonOnRoomListUpdateCallback()
 		{
 			if (not g_detail) return;
 
@@ -1309,7 +1309,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonOnRoomPropertiesChangeCallback")))
-			void siv3dPhotonOnRoomPropertiesChangeCallback()
+		void siv3dPhotonOnRoomPropertiesChangeCallback()
 		{
 			if (not g_detail) return;
 
@@ -1317,7 +1317,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonOnPlayerPropertiesChangeCallback")))
-			void siv3dPhotonOnPlayerPropertiesChangeCallback(LocalPlayerID playerID)
+		void siv3dPhotonOnPlayerPropertiesChangeCallback(LocalPlayerID playerID)
 		{
 			if (not g_detail) return;
 
@@ -1325,7 +1325,7 @@ namespace s3d::detail
 		}
 
 		__attribute__((used, export_name("siv3dPhotonOnHostChangeCallback")))
-			void siv3dPhotonOnHostChangeCallback(LocalPlayerID newHost, LocalPlayerID oldHost)
+		void siv3dPhotonOnHostChangeCallback(LocalPlayerID newHost, LocalPlayerID oldHost)
 		{
 			if (not g_detail) return;
 
@@ -1606,13 +1606,13 @@ namespace s3d {
 	{
 		disconnect();
 
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		UnregisterTypes();
-# endif
+	# endif
 
-# if SIV3D_PLATFORM(WEB)
+	# if SIV3D_PLATFORM(WEB)
 		g_detail = nullptr;
-# endif
+	# endif
 	}
 
 	void Multiplayer_Photon::init(const std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, const ConnectionProtocol protocol)
@@ -1650,9 +1650,9 @@ namespace s3d
 		m_logger = logger;
 		m_verbose = verbose.getBool();
 
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		RegisterTypes();
-# endif
+	# endif
 	}
 
 	bool Multiplayer_Photon::connect(const StringView userName_, const Optional<String>& region)
@@ -1662,7 +1662,7 @@ namespace s3d
 		m_client.reset();
 
 		m_client = std::make_unique<ExitGames::LoadBalancing::Client>(*m_listener, detail::ToJString(m_secretPhotonAppID), detail::ToJString(m_photonAppVersion),
-		  ExitGames::LoadBalancing::ClientConstructOptions{ FromEnum(m_connectionProtocol), false, (m_requestedRegion ? ExitGames::LoadBalancing::RegionSelectionMode::SELECT : ExitGames::LoadBalancing::RegionSelectionMode::BEST) });
+		  ExitGames::LoadBalancing::ClientConstructOptions{ FromEnum(m_connectionProtocol), false, (m_requestedRegion ? ExitGames::LoadBalancing::RegionSelectionMode::SELECT : ExitGames::LoadBalancing::RegionSelectionMode::BEST)});
 
 		const auto userName = detail::ToJString(userName_);
 		const auto userID = ExitGames::LoadBalancing::AuthenticationValues{}.setUserID(userName + static_cast<uint32>(Time::GetMillisecSinceEpoch()));
@@ -1798,11 +1798,11 @@ namespace s3d
 
 			RoomInfo roomInfo
 			{
-				.name = detail::ToString(room->getName()),
-				.playerCount = room->getPlayerCount(),
-				.maxPlayers = room->getMaxPlayers(),
-				.isOpen = room->getIsOpen(),
-				.properties = detail::PhotonHashtableToStringHashTable(room->getCustomProperties()),
+				.name		= detail::ToString(room->getName()),
+				.playerCount	= room->getPlayerCount(),
+				.maxPlayers		= room->getMaxPlayers(),
+				.isOpen			= room->getIsOpen(),
+				.properties		= detail::PhotonHashtableToStringHashTable(room->getCustomProperties()),
 			};
 
 			results[i] = std::move(roomInfo);
@@ -2016,7 +2016,7 @@ namespace s3d
 		{
 			return false;
 		}
-
+		
 		return m_client->opCreateRoom(detail::ToJString(roomName), detail::ToRoomOptions(option));
 	}
 
@@ -2150,7 +2150,7 @@ namespace s3d
 		m_secretPhotonAppID = secretPhotonAppID;
 		m_photonAppVersion = photonAppVersion;
 		m_logger = logger;
-		m_verbose = verbose.getBool();
+		m_verbose	= verbose.getBool();
 
 		detail::siv3dPhotonInitClient(m_secretPhotonAppID.data(), m_photonAppVersion.data(), m_verbose, static_cast<uint8>(protocol));
 	}
@@ -2174,7 +2174,7 @@ namespace s3d
 				if (m_verbose)
 				{
 					logger(U"[Multiplayer_Photon] ConnectToNameServer failed.");
-				}
+				}	
 				return false;
 			}
 		}
@@ -2212,7 +2212,7 @@ namespace s3d
 	{
 		return g_detail && g_detail->m_clientState != ClientState::Disconnected;
 	}
-
+	
 	ClientState Multiplayer_Photon::getClientState() const
 	{
 		return g_detail ? g_detail->m_clientState : ClientState::Disconnected;
@@ -2258,7 +2258,7 @@ namespace s3d
 		Array<RoomInfo> result{};
 
 		detail::siv3dPhotonGetRoomList(&result);
-
+		
 		return result;
 	}
 
@@ -2270,9 +2270,9 @@ namespace s3d
 		}
 
 		Array<RoomName> result{};
-
+		
 		detail::siv3dPhotonGetRoomNameList(&result);
-
+		
 		return result;
 	}
 
@@ -2390,7 +2390,7 @@ namespace s3d
 
 		detail::siv3dPhotonLeaveRoom(willComeBack);
 	}
-
+	
 	bool Multiplayer_Photon::reconnectAndRejoin()
 	{
 		if (not g_detail)
@@ -2460,7 +2460,7 @@ namespace s3d
 
 		return m_detail->m_countPlayersOnline;
 	}
-
+	
 	void Multiplayer_Photon::joinEventTargetGroup(uint8 targetGroup)
 	{
 		joinEventTargetGroup(Array<uint8>{ targetGroup });
@@ -2548,7 +2548,7 @@ namespace s3d
 			return options;
 		}
 	}
-
+	
 	static constexpr bool Reliable = true;
 
 	void Multiplayer_Photon::sendEvent(const MultiplayerEvent& eventInfo, const Serializer<MemoryWriter>& writer)
@@ -2597,15 +2597,15 @@ namespace s3d
 		const size_t size = blob.size();
 		const uint8* src = static_cast<const uint8*>(static_cast<const void*>(blob.data()));
 
-# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
+	# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		m_client->opRaiseEvent(Reliable, src, static_cast<unsigned int>(size), eventInfo.eventCode(), eventOptions);
-# else
+	# else
 		ExitGames::Common::Hashtable ev;
 		ev.put(L"Type", L"Blob");
 		ev.put(L"values", src, static_cast<int16>(size));
 
 		m_client->opRaiseEvent(Reliable, ev, eventInfo.eventCode(), eventOptions);
-# endif
+	# endif
 	}
 }
 
@@ -3186,6 +3186,23 @@ namespace s3d
 		return detail::ToString(m_client->getLocalPlayer().getUserID());
 	}
 
+	String Multiplayer_Photon::getUserID(LocalPlayerID localPlayerID) const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+
+		return detail::ToString(player.getUserID());
+	}
+
 	bool Multiplayer_Photon::isHost() const
 	{
 		if (not m_client)
@@ -3271,11 +3288,11 @@ namespace s3d
 
 		RoomInfo roomInfo
 		{
-			.name = detail::ToString(room.getName()),
-			.playerCount = room.getPlayerCount(),
-			.maxPlayers = room.getMaxPlayers(),
-			.isOpen = room.getIsOpen(),
-			.properties = detail::PhotonHashtableToStringHashTable(room.getCustomProperties()),
+			.name		= detail::ToString(room.getName()),
+			.playerCount	= room.getPlayerCount(),
+			.maxPlayers		= room.getMaxPlayers(),
+			.isOpen			= room.getIsOpen(),
+			.properties		= detail::PhotonHashtableToStringHashTable(room.getCustomProperties()),
 		};
 
 		return roomInfo;
@@ -3318,11 +3335,11 @@ namespace s3d
 
 			LocalPlayer localPlayer
 			{
-				.localID = player->getNumber(),
-				.userName = detail::ToString(player->getName()),
-				.userID = detail::ToString(player->getUserID()),
-				.isHost = player->getIsMasterClient(),
-				.isActive = (not player->getIsInactive()),
+				.localID	= player->getNumber(),
+				.userName	= detail::ToString(player->getName()),
+				.userID		= detail::ToString(player->getUserID()),
+				.isHost		= player->getIsMasterClient(),
+				.isActive	= (not player->getIsInactive()),
 			};
 
 			results << std::move(localPlayer);
@@ -3679,7 +3696,7 @@ namespace s3d
 		}
 
 		m_detail->updateLocalPlayer();
-
+		
 		return m_detail->m_localPlayer;
 	}
 
@@ -3703,7 +3720,7 @@ namespace s3d
 		{
 			return{};
 		}
-
+		
 		return players[0];
 	}
 
@@ -3718,7 +3735,7 @@ namespace s3d
 
 		return m_detail->m_localPlayer.userName;
 	}
-
+	
 	String Multiplayer_Photon::getUserName(LocalPlayerID localPlayerID) const
 	{
 		if (not g_detail)
@@ -3737,6 +3754,16 @@ namespace s3d
 		}
 
 		return m_detail->m_localPlayer.userID;
+	}
+
+	String Multiplayer_Photon::getUserID(LocalPlayerID localPlayerID) const
+	{
+		if (not g_detail)
+		{
+			return {};
+		}
+
+		return getLocalPlayer(localPlayerID).userID;
 	}
 
 	bool Multiplayer_Photon::isHost() const
@@ -3799,7 +3826,7 @@ namespace s3d
 		{
 			return{};
 		}
-
+		
 		m_detail->updateCurrentRoom();
 
 		return m_detail->m_currentRoom;
@@ -3904,7 +3931,7 @@ namespace s3d
 			return{};
 		}
 
-		HashTable<String, String> result{};
+		HashTable<String, String> result {};
 
 		detail::siv3dPhotonGetPlayerCustomProperties(&result, localPlayerID);
 
@@ -3922,7 +3949,7 @@ namespace s3d
 		{
 			return;
 		}
-
+		
 		detail::siv3dPhotonSetPlayerCustomProperty(key.data(), value.data());
 	}
 
@@ -3943,7 +3970,7 @@ namespace s3d
 			return;
 		}
 
-		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys { Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{
@@ -3980,7 +4007,7 @@ namespace s3d
 			return{};
 		}
 
-		HashTable<String, String> result{};
+		HashTable<String, String> result {};
 
 		detail::siv3dPhotonGetRoomCustomProperties(&result);
 
@@ -3998,7 +4025,7 @@ namespace s3d
 		{
 			return;
 		}
-
+		
 		detail::siv3dPhotonSetRoomCustomProperty(key.data(), value.data());
 	}
 
@@ -4019,7 +4046,7 @@ namespace s3d
 			return;
 		}
 
-		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys { Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{
@@ -4040,8 +4067,8 @@ namespace s3d
 		{
 			return{};
 		}
-
-		Array<String> result{};
+		
+		Array<String> result {};
 
 		detail::siv3dPhotonGetVisibleRoomPropertyKeys(&result);
 
@@ -4060,7 +4087,7 @@ namespace s3d
 			return;
 		}
 
-		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys { Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{
@@ -4069,7 +4096,7 @@ namespace s3d
 
 		detail::siv3dPhotonSetVisibleRoomPropertyKeys(keys.size(), ckeys.data());
 	}
-
+	
 	int32 Multiplayer_Photon::GetSystemTimeMillisec()
 	{
 		return static_cast<int32>(Time::GetMillisec());
