@@ -1794,7 +1794,7 @@ namespace s3d
 
 		for (uint32 i = 0; i < roomList.getSize(); ++i)
 		{
-			const auto& room = roomList[i];
+			const auto room = roomList[i];
 
 			RoomInfo roomInfo
 			{
@@ -3418,6 +3418,29 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().setIsVisible(isVisible);
 	}
 
+	String Multiplayer_Photon::getPlayerProperty(StringView key) const
+	{
+		if (not m_client)
+		{
+			return {};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return {};
+		}
+
+		const auto& player = m_client->getLocalPlayer();
+
+		const auto& properties = player.getCustomProperties();
+
+		if (auto object = properties.getValue(detail::ToJString(key))) {
+			return detail::ToString(detail::ObjectToJString(*object));
+		}
+
+		return {};
+	}
+
 	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
 	{
 		if (not m_client)
@@ -3430,20 +3453,32 @@ namespace s3d
 			return {};
 		}
 
-		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto& player = m_client->getLocalPlayer();
 
-		if (not player)
-		{
-			return {};
-		}
-
-		const auto& properties = player->getCustomProperties();
+		const auto& properties = player.getCustomProperties();
 
 		if (auto object = properties.getValue(detail::ToJString(key))) {
 			return detail::ToString(detail::ObjectToJString(*object));
 		}
 
 		return {};
+	}
+
+	HashTable<String, String> Multiplayer_Photon::getPlayerProperties() const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& player = m_client->getLocalPlayer();
+
+		return detail::PhotonHashtableToStringHashTable(player.getCustomProperties());
 	}
 
 	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
@@ -3904,6 +3939,11 @@ namespace s3d
 		detail::siv3dPhotonSetCurrentRoomVisible(isVisible);
 	}
 
+	String Multiplayer_Photon::getPlayerProperty(StringView key) const
+	{
+		return getPlayerProperty(-1)
+	}
+
 	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
 	{
 		if (not g_detail)
@@ -3917,6 +3957,11 @@ namespace s3d
 		}
 
 		return detail::siv3dPhotonGetPlayerCustomProperty(key.data(), localPlayerID);
+	}
+
+	HashTable<String, String> Multiplayer_Photon::getPlayerProperties() const
+	{
+		return getPlayerProperties(-1)
 	}
 
 	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const

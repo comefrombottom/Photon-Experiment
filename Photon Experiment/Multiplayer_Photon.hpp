@@ -960,12 +960,19 @@ namespace s3d
 		/// @param isVisible ルームを見えるようにする場合 true, それ以外の場合は false
 		void setIsVisibleInCurrentRoom(bool isVisible);
 
-		/// @brief プレイヤープロパティを取得します。
+		/// @brief 自身のプレイヤープロパティを取得します。
+		/// @param key キー
+		String getPlayerProperty(StringView key) const;
+
+		/// @brief 指定したユーザのプレイヤープロパティを取得します。
 		/// @param localPlayerID ルーム内のローカルプレイヤー ID
 		/// @param key キー
 		String getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
 
-		/// @brief プレイヤープロパティを取得します。
+		/// @brief 自身のプレイヤープロパティを取得します。
+		HashTable<String,String> getPlayerProperties() const;
+
+		/// @brief 指定したユーザのプレイヤープロパティを取得します。
 		/// @param localPlayerID ルーム内のローカルプレイヤー ID
 		HashTable<String,String> getPlayerProperties(LocalPlayerID localPlayerID) const;
 
