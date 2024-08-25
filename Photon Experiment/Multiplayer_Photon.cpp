@@ -3125,7 +3125,7 @@ namespace s3d
 			return{};
 		}
 
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
 		if (not player)
 		{
@@ -3166,7 +3166,7 @@ namespace s3d
 			return{};
 		}
 
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
 		if (not player)
 		{
@@ -3198,9 +3198,9 @@ namespace s3d
 			return{};
 		}
 
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
-		return detail::ToString(player.getUserID());
+		return detail::ToString(player->getUserID());
 	}
 
 	bool Multiplayer_Photon::isHost() const
@@ -3430,7 +3430,7 @@ namespace s3d
 			return {};
 		}
 
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
 		if (not player)
 		{
@@ -3458,7 +3458,7 @@ namespace s3d
 			return{};
 		}
 
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
+		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
 
 		if (not player)
 		{
