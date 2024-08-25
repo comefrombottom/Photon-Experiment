@@ -722,7 +722,7 @@ namespace s3d::detail
 			int32 siv3dPhotonGetServerTime();
 
 		__attribute__((import_name("siv3dPhotonGetRoundTripTime")))
-			void siv3dPhotonGetRoundTripTime();
+			int32 siv3dPhotonGetRoundTripTime();
 
 		__attribute__((import_name("siv3dPhotonJoinRandomRoom")))
 			bool siv3dPhotonJoinRandomRoom(uint8 maxPlayers, MatchmakingMode matchmakingMode, const char32* filter);
@@ -971,6 +971,8 @@ namespace s3d
 
 		void connectReturn(int32 errorCode, const String& errorString)
 		{
+			const auto& region = m_context.m_requestedRegion.value();
+
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::connectReturn()");
 			m_context.logger(U"[Multiplayer_Photon] region: ", region);
 
@@ -982,13 +984,10 @@ namespace s3d
 			}
 			else
 			{
-				m_context.logger(U"- [Multiplayer_Photon] region: ", region);
-				m_context.logger(U"- [Multiplayer_Photon] cluster: ", cluster);
-
 				m_clientState = ClientState::InLobby;
 			}
 
-			m_context.connectReturn(errorCode, errorString, m_context.m_requestedRegion.value(), U"");
+			m_context.connectReturn(errorCode, errorString, region, U"");
 		}
 
 		void reconnectReturn(int32 errorCode, const String& errorString)
@@ -1092,16 +1091,16 @@ namespace s3d
 
 		void joinRoomEventAction(LocalPlayerID playerID, bool myself)
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
-			m_context.logger(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", newPlayer.localID);
-			m_context.logger(U"- [Multiplayer_Photon] isSelf [自分自身の参加？]: ", isSelf);
-			m_context.logger(U"- [Multiplayer_Photon] playerIDs [ルームの参加者一覧]: ", playerIDs);
-
 			Array<LocalPlayerID> localPlayerIDs = getLocalPlayerIDList();
 
 			updateCurrentRoom();
 
 			m_lastJoinedRoomName = m_currentRoom.name;
+
+			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
+			m_context.logger(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", playerID);
+			m_context.logger(U"- [Multiplayer_Photon] isSelf [自分自身の参加？]: ", myself);
+			m_context.logger(U"- [Multiplayer_Photon] playerIDs [ルームの参加者一覧]: ", localPlayerIDs);
 
 			m_context.joinRoomEventAction(m_context.getLocalPlayer(), localPlayerIDs, myself);
 		}
@@ -1110,7 +1109,7 @@ namespace s3d
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomEventAction()");
 			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
-			m_context.logger(U"- [Multiplayer_Photon] isInactive: ", isInactive);
+			m_context.logger(U"- [Multiplayer_Photon] isInactive: ", isSuspended);
 
 			m_context.leaveRoomEventAction(playerID, isSuspended);
 		}
@@ -1121,7 +1120,7 @@ namespace s3d
 
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
 			m_context.logger(U"[Multiplayer_Photon] playerID: ", playerID);
-			m_context.logger(U"[Multiplayer_Photon] eventCode: ", eventCode);
+			m_context.logger(U"[Multiplayer_Photon] eventCode: ", code);
 			m_context.logger(U"[Multiplayer_Photon] data: ", blob.size(), U" bytes (serialized)");
 
 			Deserializer<MemoryViewReader> deserializer{ blob.data(), blob.size() };
@@ -1129,28 +1128,28 @@ namespace s3d
 			m_context.customEventAction(playerID, code, deserializer);
 		}
 
-		void onRoomListUpdate() override
+		void onRoomListUpdate()
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomListUpdate()");
 
 			m_context.onRoomListUpdate();
 		}
 
-		void onRoomPropertiesChange() override
+		void onRoomPropertiesChange()
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomPropertiesChange()");
 
 			m_context.onRoomPropertiesChange({});
 		}
 
-		void onPlayerPropertiesChange(const int playerID) override
+		void onPlayerPropertiesChange(const int playerID)
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
 
 			m_context.onPlayerPropertiesChange(playerID, {});
 		}
 
-		void onMasterClientChanged(const int newHostID, const int oldHostID) override
+		void onMasterClientChanged(const int newHostID, const int oldHostID)
 		{
 			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onMasterClientChanged()");
 
@@ -1382,7 +1381,10 @@ namespace s3d::detail
 	{
 		JSON json{};
 
-		json[U"interestGroup"] = eventOption.targetGroup();
+		if (eventOption.targetGroup() != 0)
+		{
+			json[U"interestGroup"] = eventOption.targetGroup();
+		}
 		EventCaching cache = EventCaching::DoNotCache;
 		ReceiverGroup receiver = ReceiverGroup::Others;
 		switch (eventOption.receiverOption())
@@ -1411,8 +1413,14 @@ namespace s3d::detail
 			break;
 		};
 		json[U"cache"] = static_cast<int32>(cache);
-		json[U"receivers"] = static_cast<int32>(receiver);
-		json[U"targetActors"] = eventOption.targetList();
+		if (static_cast<int32>(receiver) != 0)
+		{
+			json[U"receivers"] = static_cast<int32>(receiver);
+		}
+		if (eventOption.targetList())
+		{
+			json[U"targetActors"] = eventOption.targetList().value();
+		}
 
 		return json.formatMinimum();
 	}
@@ -1421,7 +1429,10 @@ namespace s3d::detail
 	{
 		JSON json{};
 
-		json[U"targetActors"] = targets;
+		if (targets.size() > 0)
+		{
+			json[U"targetActors"] = targets;
+		}
 
 		return json.formatMinimum();
 	}
@@ -1540,39 +1551,6 @@ namespace s3d {
 
 	// MultiplayerEvent
 
-	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
-		: m_eventCode(eventCode)
-		, m_receiverOption(receiverOption)
-		, m_priorityIndex(priorityIndex)
-	{
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
-		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-		}
-	}
-
-	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
-		: m_eventCode(eventCode)
-		, m_targetList(targetList)
-		, m_priorityIndex(priorityIndex)
-	{
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
-		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-		}
-	}
-
-	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex)
-		: m_eventCode(eventCode)
-		, m_targetGroup(targetGroup.value())
-		, m_priorityIndex(priorityIndex)
-	{
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
-		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-		}
-	}
-
 	uint8 MultiplayerEvent::eventCode() const noexcept
 	{
 		return m_eventCode;
@@ -1602,6 +1580,8 @@ namespace s3d {
 
 // [Common] Multiplayer_Photon
 namespace s3d {
+	Multiplayer_Photon::Multiplayer_Photon() = default;
+
 	Multiplayer_Photon::Multiplayer_Photon(std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, const ConnectionProtocol protocol)
 	{
 		init(Unicode::WidenAscii(secretPhotonAppID), photonAppVersion, verbose, protocol);
@@ -2418,7 +2398,7 @@ namespace s3d
 			return 0;
 		}
 
-		return detail::siv3dGetRoundTripTime();
+		return detail::siv3dPhotonGetRoundTripTime();
 	}
 
 	int32 Multiplayer_Photon::getCountGamesRunning() const
@@ -3692,14 +3672,7 @@ namespace s3d
 			return {};
 		}
 
-		LocalPlayer player = getLocalPlayer(localPlayerID);
-
-		if (not player)
-		{
-			return {};
-		}
-
-		return player.userName;
+		return getLocalPlayer(localPlayerID).userName;
 	}
 
 	String Multiplayer_Photon::getUserID() const
@@ -3741,7 +3714,7 @@ namespace s3d
 			return -1;
 		}
 
-		return siv3dPhotonGetMasterClientID();
+		return detail::siv3dPhotonGetMasterClientID();
 	}
 
 	void Multiplayer_Photon::setUserName(StringView name)
@@ -3852,449 +3825,7 @@ namespace s3d
 
 	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
 	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not isInRoom())
-		{
-			return {};
-		}
-
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
-
-		if (not player)
-		{
-			return {};
-		}
-
-		const auto& properties = player->getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
-
-		if (not player)
-		{
-			return{};
-		}
-
-		return detail::PhotonHashtableToStringHashTable(player->getCustomProperties());
-	}
-
-	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::removePlayerProperty(StringView key)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removePlayerProperty(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getLocalPlayer().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	String Multiplayer_Photon::getRoomProperty(StringView key) const
-	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return {};
-		}
-
-		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getRoomProperties() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		return detail::PhotonHashtableToStringHashTable(m_client->getCurrentlyJoinedRoom().getCustomProperties());
-	}
-
-	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::removeRoomProperty(StringView key)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removeRoomProperty(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getCurrentlyJoinedRoom().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	Array<String> Multiplayer_Photon::getVisibleRoomPropertyKeys() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& keys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
-
-		Array<String> results(keys.getSize());
-
-		for (uint32 i = 0; i < keys.getSize(); ++i)
-		{
-			results[i] = detail::ToString(keys[i]);
-		}
-
-		return results;
-	}
-
-	void Multiplayer_Photon::setVisibleRoomPropertyKeys(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
-	}
-
-	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
-	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return {};
-		}
-
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
-
-		if (not player)
-		{
-			return {};
-		}
-
-		const auto& properties = player->getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
-
-		if (not player)
-		{
-			return{};
-		}
-
-		return detail::PhotonHashtableToStringHashTable(player->getCustomProperties());
-	}
-
-	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::removePlayerProperty(StringView key)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removePlayerProperties(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getLocalPlayer().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	String Multiplayer_Photon::getRoomProperty(StringView key) const
-	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return {};
-		}
-
-		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getRoomProperties() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		return detail::PhotonHashtableToStringHashTable(m_client->getCurrentlyJoinedRoom().getCustomProperties());
-	}
-
-	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::removeRoomProperty(StringView key)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removeRoomProperties(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getCurrentlyJoinedRoom().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	Array<String> Multiplayer_Photon::getVisibleRoomPropertyKeys() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& keys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
-
-		Array<String> results(keys.getSize());
-
-		for (uint32 i = 0; i < keys.getSize(); ++i)
-		{
-			results[i] = detail::ToString(keys[i]);
-		}
-
-		return results;
-	}
-
-	void Multiplayer_Photon::setVisibleRoomPropertyKeys(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
-	}
-
-	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
-	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return {};
 		}
@@ -4309,7 +3840,7 @@ namespace s3d
 
 	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return{};
 		}
@@ -4321,14 +3852,14 @@ namespace s3d
 
 		HashTable<String, String> result{};
 
-		detail::siv3dPhotonGetPlayerCustomProperty(result, localPlayerID);
+		detail::siv3dPhotonGetPlayerCustomProperties(&result, localPlayerID);
 
 		return result;
 	}
 
 	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return;
 		}
@@ -4343,12 +3874,12 @@ namespace s3d
 
 	void Multiplayer_Photon::removePlayerProperty(StringView key)
 	{
-		removeCustomProperties({ key.data() });
+		removePlayerProperties({ key.data() });
 	}
 
 	void Multiplayer_Photon::removePlayerProperties(const Array<String>& keys)
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return;
 		}
@@ -4358,7 +3889,7 @@ namespace s3d
 			return;
 		}
 
-		Array<char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{
@@ -4370,7 +3901,7 @@ namespace s3d
 
 	String Multiplayer_Photon::getRoomProperty(StringView key) const
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return {};
 		}
@@ -4380,12 +3911,12 @@ namespace s3d
 			return {};
 		}
 
-		return detail::siv3dPhotonGetPlayerCustomProperty(key.data());
+		return detail::siv3dPhotonGetRoomCustomProperty(key.data());
 	}
 
-	HashTable<String, String> Multiplayer_Photon::getRoomProperties(LocalPlayerID localPlayerID) const
+	HashTable<String, String> Multiplayer_Photon::getRoomProperties() const
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return{};
 		}
@@ -4397,14 +3928,14 @@ namespace s3d
 
 		HashTable<String, String> result{};
 
-		detail::siv3dPhotonGetRoomCustomProperty(result, localPlayerID);
+		detail::siv3dPhotonGetRoomCustomProperties(&result);
 
 		return result;
 	}
 
 	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return;
 		}
@@ -4419,12 +3950,12 @@ namespace s3d
 
 	void Multiplayer_Photon::removeRoomProperty(StringView key)
 	{
-		removeCustomProperties({ key.data() });
+		removeRoomProperties({ key.data() });
 	}
 
 	void Multiplayer_Photon::removeRoomProperties(const Array<String>& keys)
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return;
 		}
@@ -4434,19 +3965,19 @@ namespace s3d
 			return;
 		}
 
-		Array<char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{
 			ckeys.push_back(keys[i].data());
 		}
 
-		detail::siv3dPhotonRemoveRoomCustomProperties(ckeys.data());
+		detail::siv3dPhotonRemoveRoomCustomProperties(keys.size(), ckeys.data());
 	}
 
 	Array<String> Multiplayer_Photon::getVisibleRoomPropertyKeys() const
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return{};
 		}
@@ -4458,24 +3989,24 @@ namespace s3d
 
 		Array<String> result{};
 
-		detail::siv3dPhotonGetVisibleRoomPropertyKeys(result);
+		detail::siv3dPhotonGetVisibleRoomPropertyKeys(&result);
 
 		return result;
 	}
 
 	void Multiplayer_Photon::setVisibleRoomPropertyKeys(const Array<String>& keys)
 	{
-		if (not m_client)
+		if (not g_detail)
 		{
 			return;
 		}
 
-		if (not m_client->getIsInGameRoom())
+		if (not isInRoom())
 		{
 			return;
 		}
 
-		Array<char32*> ckeys{ Arg::reserve = keys.size() };
+		Array<const char32*> ckeys{ Arg::reserve = keys.size() };
 
 		for (int i = 0; i < keys.size(); i++)
 		{

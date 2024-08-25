@@ -100,15 +100,16 @@ namespace s3d
 	};
 
 	/// @brief 通信時に用いるプロトコル
+	/// @remark Web 版においてHTTPSを使用する場合は Wss を使用してください。
 	enum class ConnectionProtocol : uint8
 	{
 		Default = 0,
-# if SIV3D_PLATFORM(WEB)
-		Ws = 0,
-		Wss = 1,
-# else
+# if not SIV3D_PLATFORM(WEB)
 		UDP = 0,
 		TCP = 1,
+# else
+		Ws = 0,
+		Wss = 1,
 # endif
 	};
 
@@ -268,24 +269,27 @@ namespace s3d
 		/// @param receiverOption 送信先のターゲット指定オプション
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
+		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, EventReceiverOption receiverOption = EventReceiverOption::Others, uint8 priorityIndex = 0);
+			MultiplayerEvent(EventCode eventCode, EventReceiverOption receiverOption = EventReceiverOption::Others, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
 		/// @param targetList 送信先のプレイヤーのローカル ID のリスト
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
+		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
+			MultiplayerEvent(EventCode eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
 		/// @param targetGroup 送信先のイベントターゲットグループ（1以上255以下の整数）
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
+		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
+			MultiplayerEvent(EventCode eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
 
 		[[nodiscard]]
 		uint8 eventCode() const noexcept;
@@ -343,7 +347,7 @@ namespace s3d
 
 		/// @brief デフォルトコンストラクタ。このコンストラクタを使用する場合は後で init を呼び出してください。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon() = default;
+			Multiplayer_Photon();
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -1305,8 +1309,8 @@ namespace s3d
 		template<class T, class... Args>
 		using EventCallbackType = void (T::*)(LocalPlayerID, Args...);
 
-		template<class T, class... Args>
-		void RegisterEventCallback(uint8 eventCode, EventCallbackType<T, Args...> callback);
+		template<class EventCode, class T, class... Args>
+		void RegisterEventCallback(EventCode eventCode, EventCallbackType<T, Args...> callback);
 
 		template<class... Args>
 		void logger(Args&&... args) const
@@ -1384,9 +1388,58 @@ namespace s3d
 	template<>
 	void Multiplayer_Photon::sendEvent<>(const MultiplayerEvent& event);
 
-	template<class T, class ...Args>
-	void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
+	template<class EventCode, class T, class ...Args>
+	void Multiplayer_Photon::RegisterEventCallback(EventCode eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
 	{
-		table[eventCode] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+
+		table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
+	}
+
+	template<class EventCode>
+	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_receiverOption(receiverOption)
+		, m_priorityIndex(priorityIndex)
+	{
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+	}
+
+	template<class EventCode>
+	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_targetList(targetList)
+		, m_priorityIndex(priorityIndex)
+	{
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+	}
+
+	template<class EventCode>
+	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, TargetGroup targetGroup, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_targetGroup(targetGroup.value())
+		, m_priorityIndex(priorityIndex)
+	{
+		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "EventCode must be integral or enum");
+
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
 	}
 }
