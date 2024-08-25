@@ -16,6 +16,8 @@
 //	- sthairno
 //-----------------------------------------------
 
+# include <Siv3D.hpp>
+
 # if not SIV3D_PLATFORM(WEB)
 # 	define NOMINMAX
 # 	include <LoadBalancing-cpp/inc/Client.h>
@@ -3941,7 +3943,7 @@ namespace s3d
 
 	String Multiplayer_Photon::getPlayerProperty(StringView key) const
 	{
-		return getPlayerProperty(-1)
+		return getPlayerProperty(-1, key);
 	}
 
 	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
@@ -3961,7 +3963,7 @@ namespace s3d
 
 	HashTable<String, String> Multiplayer_Photon::getPlayerProperties() const
 	{
-		return getPlayerProperties(-1)
+		return getPlayerProperties(-1);
 	}
 
 	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
@@ -4000,7 +4002,7 @@ namespace s3d
 
 	void Multiplayer_Photon::removePlayerProperty(StringView key)
 	{
-		removePlayerProperty({ key.data() });
+		removePlayerProperty({ key });
 	}
 
 	void Multiplayer_Photon::removePlayerProperty(const Array<String>& keys)
@@ -4076,7 +4078,7 @@ namespace s3d
 
 	void Multiplayer_Photon::removeRoomProperty(StringView key)
 	{
-		removeRoomProperty({ key.data() });
+		removeRoomProperty({ key });
 	}
 
 	void Multiplayer_Photon::removeRoomProperty(const Array<String>& keys)
