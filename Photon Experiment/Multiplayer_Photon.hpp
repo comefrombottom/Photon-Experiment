@@ -980,7 +980,7 @@ namespace s3d
 
 		/// @brief 自身のプレイヤープロパティを削除します。
 		/// @param keys キーリスト
-		void removePlayerProperties(const Array<String>& keys);
+		void removePlayerProperty(const Array<String>& keys);
 
 		/// @brief ルームプロパティを取得します。存在しないキーに対しては空の文字列を返します。
 		/// @param key キー
@@ -1000,7 +1000,7 @@ namespace s3d
 
 		/// @brief ルームプロパティを削除します。
 		/// @param keys キーリスト
-		void removeRoomProperties(const Array<String>& keys);
+		void removeRoomProperty(const Array<String>& keys);
 
 		/// @brief ロビーから参照可能なルームプロパティのキーリストを返します。
 		/// @return ロビーから参照可能なルームプロパティのキーリスト

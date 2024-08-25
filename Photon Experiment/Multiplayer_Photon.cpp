@@ -3498,7 +3498,7 @@ namespace s3d
 		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
 	}
 
-	void Multiplayer_Photon::removePlayerProperties(const Array<String>& keys)
+	void Multiplayer_Photon::removePlayerProperty(const Array<String>& keys)
 	{
 		if (not m_client)
 		{
@@ -3581,7 +3581,7 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
 	}
 
-	void Multiplayer_Photon::removeRoomProperties(const Array<String>& keys)
+	void Multiplayer_Photon::removeRoomProperty(const Array<String>& keys)
 	{
 		if (not m_client)
 		{
@@ -3955,10 +3955,10 @@ namespace s3d
 
 	void Multiplayer_Photon::removePlayerProperty(StringView key)
 	{
-		removePlayerProperties({ key.data() });
+		removePlayerProperty({ key.data() });
 	}
 
-	void Multiplayer_Photon::removePlayerProperties(const Array<String>& keys)
+	void Multiplayer_Photon::removePlayerProperty(const Array<String>& keys)
 	{
 		if (not g_detail)
 		{
@@ -4031,10 +4031,10 @@ namespace s3d
 
 	void Multiplayer_Photon::removeRoomProperty(StringView key)
 	{
-		removeRoomProperties({ key.data() });
+		removeRoomProperty({ key.data() });
 	}
 
-	void Multiplayer_Photon::removeRoomProperties(const Array<String>& keys)
+	void Multiplayer_Photon::removeRoomProperty(const Array<String>& keys)
 	{
 		if (not g_detail)
 		{
