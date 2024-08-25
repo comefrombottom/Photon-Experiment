@@ -1830,6 +1830,86 @@ namespace s3d
 		return results;
 	}
 
+	int32 Multiplayer_Photon::getServerTimeMillisec() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getServerTime();
+	}
+
+	int32 Multiplayer_Photon::getServerTimeOffsetMillisec() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getServerTimeOffset();
+	}
+
+	int32 Multiplayer_Photon::getPingMillisec() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getRoundTripTime();
+	}
+
+	int32 Multiplayer_Photon::getBytesIn() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getBytesIn();
+	}
+
+	int32 Multiplayer_Photon::getBytesOut() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getBytesOut();
+	}
+
+	int32 Multiplayer_Photon::getCountGamesRunning() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getCountGamesRunning();
+	}
+
+	int32 Multiplayer_Photon::getCountPlayersIngame() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getCountPlayersIngame();
+	}
+
+	int32 Multiplayer_Photon::getCountPlayersOnline() const
+	{
+		if (not m_client)
+		{
+			return 0;
+		}
+
+		return m_client->getCountPlayersOnline();
+	}
+
 	bool Multiplayer_Photon::joinRandomRoom(int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
@@ -1971,56 +2051,6 @@ namespace s3d
 		}
 
 		return false;
-	}
-
-	int32 Multiplayer_Photon::getServerTimeMillisec() const
-	{
-		if (not m_client)
-		{
-			return 0;
-		}
-
-		return m_client->getServerTime();
-	}
-
-	int32 Multiplayer_Photon::getServerTimeOffsetMillisec() const
-	{
-		if (not m_client)
-		{
-			return 0;
-		}
-
-		return m_client->getServerTimeOffset();
-	}
-
-	int32 Multiplayer_Photon::getPingMillisec() const
-	{
-		if (not m_client)
-		{
-			return 0;
-		}
-
-		return m_client->getRoundTripTime();
-	}
-
-	int32 Multiplayer_Photon::getBytesIn() const
-	{
-		if (not m_client)
-		{
-			return 0;
-		}
-
-		return m_client->getBytesIn();
-	}
-
-	int32 Multiplayer_Photon::getBytesOut() const
-	{
-		if (not m_client)
-		{
-			return 0;
-		}
-
-		return m_client->getBytesOut();
 	}
 
 	void Multiplayer_Photon::joinEventTargetGroup(uint8 targetGroup)
