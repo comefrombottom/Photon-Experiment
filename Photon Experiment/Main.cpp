@@ -1,170 +1,6 @@
-﻿# include <Siv3D.hpp> // OpenSiv3D v0.6.4
+# include <Siv3D.hpp> // OpenSiv3D v0.6.4
 # include "Multiplayer_Photon.hpp"
 # include "PHOTON_APP_ID.SECRET"
-
-
-struct ScrollBar
-{
-	RectF rect{};
-	Optional<double> dragOffset;
-
-	double viewHeight = 600;
-	double pageHeight = 1000;
-	double viewTop = 0;
-	double viewVelocity = 0;
-
-	double accumulateTime = 0;
-	static constexpr double stepTime = 1.0 / 200;
-	static constexpr double resistance = 10;
-
-	Transition sliderWidthTransition = Transition(0.1s, 0.1s);
-
-	ScrollBar() = default;
-
-	ScrollBar(const RectF& rect, double viewHeight, double pageHeight)
-		: rect(rect)
-		, viewHeight(viewHeight)
-		, pageHeight(pageHeight)
-	{
-
-	}
-
-	ScrollBar(double pageHeight, double viewHeight = Graphics2D::GetRenderTargetSize().y, const RectF& rect = RectF{ Arg::topRight(Graphics2D::GetRenderTargetSize().x - 2,0),10,Graphics2D::GetRenderTargetSize().y })
-		: rect(rect)
-		, viewHeight(viewHeight)
-		, pageHeight(pageHeight)
-	{
-
-	}
-
-	double sliderHeight() const
-	{
-		return Max(rect.h * viewHeight / pageHeight, 20.0);
-	}
-
-	double sliderYPerViewY() const
-	{
-		return (rect.h - sliderHeight()) / (pageHeight - viewHeight);
-	}
-
-	double sliderY() const
-	{
-		return viewTop * sliderYPerViewY();
-	}
-
-	RectF sliderRect() const
-	{
-		return RectF(rect.x, rect.y + sliderY(), rect.w, sliderHeight());
-	}
-
-	bool existSlider() const
-	{
-		return viewHeight < pageHeight;
-	}
-
-	bool isSliderMouseOver() const
-	{
-		return sliderRect().stretched(5).mouseOver();
-	}
-
-	bool isSliderThick() const
-	{
-		return isSliderMouseOver() || dragOffset;
-	}
-
-	Transformer2D createTransformer() const
-	{
-		return Transformer2D(Mat3x2::Translate(0, -viewTop), TransformCursor::Yes);
-	}
-
-	void scrollBy(double h) {
-		viewVelocity += resistance * h;
-	}
-
-	void scrollTopTo(double y) {
-		scrollBy(y - viewTop);
-	}
-
-	void scrollBottomTo(double y) {
-		scrollBy(y - viewTop - viewHeight);
-	}
-
-	void scrollCenterTo(double y) {
-		scrollBy(y - viewTop - viewHeight / 2);
-	}
-
-	void update(double wheel = Mouse::Wheel(), double delta = Scene::DeltaTime())
-	{
-		if (not existSlider()) {
-			viewTop = 0;
-			viewVelocity = 0;
-			dragOffset.reset();
-			sliderWidthTransition.reset();
-			return;
-		}
-
-		for (accumulateTime += delta; accumulateTime >= stepTime; accumulateTime -= stepTime)
-		{
-			if (not dragOffset) {
-				viewTop += viewVelocity * stepTime;
-			}
-
-			if (viewVelocity != 0)
-			{
-				viewVelocity += -viewVelocity * stepTime * resistance;
-			}
-		}
-
-		if (dragOffset)
-		{
-			const double prevTop = viewTop;
-			viewTop = (Cursor::PosF().y - *dragOffset) / sliderYPerViewY();
-			viewVelocity = (viewTop - prevTop) / delta;
-		}
-
-
-		if (isSliderMouseOver() and MouseL.down())
-		{
-			dragOffset = Cursor::PosF().y - sliderY();
-		}
-		else if (dragOffset && MouseL.up())
-		{
-			dragOffset.reset();
-		}
-
-		if (wheel) {
-			viewVelocity = wheel * 2000;
-		}
-
-		if (viewTop < 0)
-		{
-			viewTop = 0;
-			viewVelocity = 0;
-		}
-		else if (viewTop + viewHeight > pageHeight)
-		{
-			viewTop = pageHeight - viewHeight;
-			viewVelocity = 0;
-		}
-
-		sliderWidthTransition.update(isSliderThick());
-
-	}
-
-	void draw(const ColorF& color = ColorF(Palette::Dimgray).withAlpha(0.8)) const
-	{
-		if (not existSlider()) return;
-
-		double w = rect.w * (sliderWidthTransition.value() * 0.5 + 0.5);
-
-		RectF(rect.x - w + rect.w, rect.y + sliderY(), w, sliderHeight()).rounded(rect.w / 2).draw(color);
-	}
-
-	double progress0_1() {
-		return viewTop / (pageHeight - viewHeight);
-	}
-};
-
 
 // ユーザ定義型
 struct MyData
@@ -181,519 +17,592 @@ struct MyData
 	}
 };
 
+enum class EventCode
+{
+	IntEvent = 1,
+	StringEvent,
+	StringEvent2,
+	CustomDataTest1,
+	CustomDataTest2,
+	CustomDataTest3,
+	CustomDataTest4,
+	FallbackTest,
+};
+
 class MyNetwork : public Multiplayer_Photon
 {
 public:
 
-	//static constexpr int32 MaxPlayers = 3;
-
-	//using Multiplayer_Photon::Multiplayer_Photon;
-
 	MyNetwork()
-		: Multiplayer_Photon(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console)
 	{
-		RegisterEventCallback(111, &MyNetwork::customDataReceive111);
-		RegisterEventCallback(112, &MyNetwork::customDataReceive112);
+		init(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console, Verbose::Yes, ConnectionProtocol::Wss);
+
+		RegisterEventCallback(EventCode::IntEvent, &MyNetwork::onIntEvent);
+		RegisterEventCallback(EventCode::StringEvent, &MyNetwork::onStringEvent);
+		RegisterEventCallback(EventCode::StringEvent2, &MyNetwork::onStringEvent2);
+		RegisterEventCallback(EventCode::CustomDataTest1, &MyNetwork::onCustomDataTest1);
+		RegisterEventCallback(EventCode::CustomDataTest2, &MyNetwork::onCustomDataTest2);
+		RegisterEventCallback(EventCode::CustomDataTest3, &MyNetwork::onCustomDataTest3);
+		RegisterEventCallback(EventCode::CustomDataTest4, &MyNetwork::onCustomDataTest4);
+	}
+
+	Optional<LocalPlayer> getLocalPlayerByName(StringView userName) const
+	{
+		for (const auto& player : getLocalPlayers())
+		{
+			if (player.userName == userName)
+			{
+				return player;
+			}
+		}
+		return none;
 	}
 
 private:
 
-	Array<LocalPlayer> m_localPlayers;
-
-	void customDataReceive111(LocalPlayerID sender, const int32& i, const double& d, const Vec2& v) {
-		logger(U"<<< 111を受信:{},{},{}"_fmt(i, d, v));
-	}
-
-	void customDataReceive112(LocalPlayerID sender) {
-		logger(U"<<< 112を受信");
-	}
-
-	//void connectReturn([[maybe_unused]] const int32 errorCode, const String& errorString, const String& region, [[maybe_unused]] const String& cluster) override
-	//{
-	//	logger(U"MyNetwork::connectReturn() [サーバへの接続を試みた結果を処理する]");
-
-	//	if (errorCode)
-	//	{
-	//		logger(U"[サーバへの接続に失敗] ", errorString);
-
-	//		return;
-	//	}
-
-	//	logger(U"[サーバへの接続に成功]");
-	//	logger(U"[region: {}]"_fmt(region));
-	//	logger(U"[ユーザ名: {}]"_fmt(getUserName()));
-	//	logger(U"[ユーザ ID: {}]"_fmt(getUserID()));
-	//}
-
-	//void disconnectReturn() override
-	//{
-	//	logger(U"MyNetwork::disconnectReturn() [サーバから切断したときに呼ばれる]");
-
-	//	m_localPlayers.clear();
-
-	//	Scene::SetBackground(Palette::DefaultBackground);
-	//}
-
-	//void joinRandomRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
-	//{
-	//	if (m_verbose)
-	//	{
-	//		Print << U"MyNetwork::joinRandomRoomReturn() [既存のランダムなルームに参加を試みた結果を処理する]";
-	//	}
-
-	//	if (errorCode == NoRandomMatchFound)
-	//	{
-	//		if (m_verbose)
-	//		{
-	//			Print << U"[参加可能なランダムなルームが見つからなかった]";
-	//		}
-
-	//		return;
-	//	}
-	//	else if (errorCode)
-	//	{
-	//		if (m_verbose)
-	//		{
-	//			Print << U"[既存のランダムなルームへの参加でエラーが発生] " << errorString;
-	//		}
-
-	//		return;
-	//	}
-
-	//	if (m_verbose)
-	//	{
-	//		Print << U"[既存のランダムなルームに参加できた]";
-	//	}
-	//}
-
-	//void createRoomReturn([[maybe_unused]] const LocalPlayerID playerID, const int32 errorCode, const String& errorString) override
-	//{
-	//	if (m_verbose)
-	//	{
-	//		Print << U"MyNetwork::createRoomReturn() [ルームを新規作成した結果を処理する]";
-	//	}
-
-	//	if (errorCode)
-	//	{
-	//		if (m_verbose)
-	//		{
-	//			Print << U"[ルームの新規作成でエラーが発生] " << errorString;
-	//		}
-
-	//		return;
-	//	}
-
-	//	if (m_verbose)
-	//	{
-	//		Print << U"[ルーム " << getCurrentRoomName() << U" の作成に成功]";
-	//	}
-	//}
-
-	//void joinRoomEventAction(const LocalPlayer& newPlayer, [[maybe_unused]] const Array<LocalPlayerID>& playerIDs, const bool isSelf) override
-	//{
-	//	if (m_verbose)
-	//	{
-	//		Print << U"MyNetwork::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]";
-	//	}
-
-	//	m_localPlayers = getLocalPlayers();
-
-	//	if (m_verbose)
-	//	{
-	//		Print << U"[{} (ID: {}) がルームに参加した。ローカル ID: {}] {}"_fmt(newPlayer.userName, newPlayer.userID, newPlayer.localID, (isSelf ? U"(自分自身)" : U""));
-
-	//		Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
-
-	//		for (const auto& player : m_localPlayers)
-	//		{
-	//			Print << U"- [{}] {} (id: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
-	//		}
-	//	}
-
-	//	if (isSelf)
-	//	{
-	//		// 自分がルームに参加したときの処理
-	//	}
-	//	else
-	//	{
-	//		// 他のプレイヤーがルームに参加したときの処理
-	//	}
-	//}
-
-	//void leaveRoomEventAction(const LocalPlayerID playerID, [[maybe_unused]] const bool isInactive) override
-	//{
-	//	if (m_verbose)
-	//	{
-	//		Print << U"MyNetwork::leaveRoomEventAction() [誰かがルームから退出したら呼ばれる]";
-	//	}
-
-	//	m_localPlayers = getLocalPlayers();
-
-	//	if (m_verbose)
-	//	{
-	//		for (const auto& player : m_localPlayers)
-	//		{
-	//			if (player.localID == playerID)
-	//			{
-	//				Print << U"[{} (ID: {}, ローカル ID: {}) がルームから退出した]"_fmt(player.userName, player.userID, player.localID);
-	//			}
-	//		}
-
-	//		Print << U"現在の " << getCurrentRoomName() << U" のルームメンバー";
-
-	//		for (const auto& player : m_localPlayers)
-	//		{
-	//			Print << U"- [{}] {} (ID: {}) {}"_fmt(player.localID, player.userName, player.userID, player.isHost ? U"(host)" : U"");
-	//		}
-	//	}
-	//}
-
-	//void leaveRoomReturn(int32 errorCode, const String& errorString) override
-	//{
-	//	if (m_verbose)
-	//	{
-	//		Print << U"MyNetwork::leaveRoomReturn() [ルームから退出したときに呼ばれる]";
-	//	}
-
-
-
-	//	m_localPlayers.clear();
-
-	//	if (errorCode)
-	//	{
-	//		if (m_verbose)
-	//		{
-	//			Print << U"[ルームからの退出でエラーが発生] " << errorString;
-	//		}
-
-	//		return;
-	//	}
-	//}
-
-# if SIV3D_MULTIPLAYER_PHOTON_LAGACY == 1
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const int32 data) override
+	void onIntEvent(LocalPlayerID sender, int32 value)
 	{
-		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: int32(" << data << U") を受信";
+		logger(U"<<< IntEvent を受信: {}"_fmt(value));
 	}
 
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const String& data) override
+	void onStringEvent(LocalPlayerID sender, String value)
 	{
-		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: String(" << data << U") を受信";
+		logger(U"<<< StringEvent を受信: {}"_fmt(value));
 	}
 
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const Point& data) override
+	void onStringEvent2(LocalPlayerID sender, String value)
 	{
-		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: Point" << data << U" を受信";
+		logger(U"<<< StringEvent2 を受信: {}"_fmt(value));
 	}
 
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const Array<int32>& data) override
-	{
-		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: Array<int32>" << data << U" を受信";
+	void onCustomDataTest1(LocalPlayerID sender) {
+		logger(U"<<< CustomDataTest1 を受信");
 	}
 
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, const Array<String>& data) override
-	{
-		Print << U"<<< [" << playerID << U"] からの eventCode: " << eventCode << U", data: Array<String>" << data << U" を受信";
+	void onCustomDataTest2(LocalPlayerID sender, Array<double> a) {
+		logger(U"<<< CustomDataTest2 を受信: {}"_fmt(a));
 	}
 
-# endif
+	void onCustomDataTest3(LocalPlayerID sender, Array<double>& a) {
+		logger(U"<<< CustomDataTest3 を受信: {}"_fmt(a));
+	}
+
+	void onCustomDataTest4(LocalPlayerID sender, Array<double>&& a) {
+		logger(U"<<< CustomDataTest4 を受信: {}"_fmt(a));
+	}
 
 	// シリアライズデータを受信したときに呼ばれる関数をオーバーライドしてカスタマイズする
 	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, Deserializer<MemoryViewReader>& reader) override
 	{
-		if (eventCode == 123)
+		logger(U"<<< {} を受信"_fmt(eventCode));
+	}
+
+	void onRoomListUpdate() override
+	{
+		logger(U"onRoomListUpdate:");
+		logger(U"{}"_fmt(getRoomNameList()));
+		for (const auto& room : getRoomList())
 		{
-			MyData mydata;
-			reader(mydata);
-			Print << U"<<< [" << playerID << U"] からの MyData(" << mydata.word << U", " << mydata.pos << U") を受信";
-		}
-
-		if (eventCode == 111) {
-			int32 i;
-			double d;
-			Vec2 v;
-			reader(i, d, v);
-			Print << U"<<< [" << playerID << U"] からの{},{},{}"_fmt(i, d, v) << U") を受信";
-		}
-
-		if (eventCode == 112) {
-			String message;
-			reader(message);
-			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
-		}
-
-		if (eventCode == 113) {
-			String message;
-			reader(message);
-			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
-		}
-
-		if (eventCode == 100) {
-			String message;
-			reader(message);
-			Print << U"<<< [" << playerID << U"] からの message:" << message << U" を受信";
+			logger(U"- name: {}"_fmt(room.name));
+			logger(U"- isOpen: {}"_fmt(room.isOpen));
+			logger(U"- stats: {} / {}"_fmt(room.playerCount, room.maxPlayers));
+			logger(U"- properties: {}"_fmt(Format(room.properties)));
 		}
 	}
 };
 
 void Main()
 {
-	Window::Resize(1280, 720);
-	const std::string secretAppID{ SIV3D_OBFUSCATE(PHOTON_APP_ID) };
-	MyNetwork network;
+	Scene::Resize(1600, 1200);
+	Scene::SetResizeMode(ResizeMode::Keep);
 
-	int32 state = -2;
+	Window::SetStyle(WindowStyle::Sizable);
 
-	ScrollBar scrollBar{ 2000 };
-	bool rejoin = false;
+	MyNetwork network{};
+
+	TextEditState text{};
+
+	Font font{ 20 };
+
+	static constexpr int32 initX = 10;
+	static constexpr int32 initY = 10;
+	static constexpr int32 marginWidth = 10;
+	static constexpr int32 ButtonWidth = 380;
+	static constexpr int32 offsetX = marginWidth + ButtonWidth;
+	static constexpr int32 offsetY = 50;
 
 	while (System::Update())
 	{
-		scrollBar.update();
+		network.update();
 
-		if (network.getClientState() == ClientState::Disconnected or network.getClientState() == ClientState::ConnectingToLobby)
+		int x = initX;
+		int y = initY;
+
+		SimpleGUI::TextBox(text, { x, y }, ButtonWidth);
+
+# if not SIV3D_PLATFORM(WEB)
+		font(U"bytesIn: {}"_fmt(
+			network.getBytesIn()
+		)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+
+		font(U"bytesOut: {}"_fmt(
+			network.getBytesOut()
+		)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+# endif
+
+		if (SimpleGUI::Button(U"connect", { x = initX, y += offsetY }, ButtonWidth))
 		{
-			Scene::Rect().draw(Palette::DefaultBackground);
+			network.connect(U"Siv", U"jp");
 		}
-		else {
-			Scene::Rect().draw(ColorF{ 0.4, 0.5, 0.6 });
+
+		if (SimpleGUI::Button(U"disconnect", { x += offsetX, y }, ButtonWidth))
+		{
+			network.disconnect();
+		}
+
+		if (SimpleGUI::Button(U"leaveRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.leaveRoom(false);
+		}
+
+		if (SimpleGUI::Button(U"leaveRoom (rejoin)", { x += offsetX, y }, ButtonWidth))
+		{
+			network.leaveRoom(true);
+		}
+
+		if (SimpleGUI::Button(U"reconnect", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.reconnectAndRejoin();
+		}
+
+		if (SimpleGUI::Button(U"stats", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"serverTime: {}ms"_fmt(Format(network.getServerTimeMillisec())));
+			network.logger(U"serverTimeOffset: {}ms"_fmt(Format(network.getServerTimeOffsetMillisec())));
+			network.logger(U"ping: {}ms"_fmt(Format(network.getPingMillisec())));
+		}
+
+		if (SimpleGUI::Button(U"getPingInterval", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"getPingInterval: {}ms"_fmt(network.getPingIntervalMillisec()));
+		}
+
+		if (SimpleGUI::Button(U"setPingInterval", { x += offsetX, y }, ButtonWidth))
+		{
+			Optional<int32> parse = ParseOpt<int32>(text.text);
+			if (parse)
+			{
+				network.logger(U"setPingInterval: {}ms"_fmt(parse.value()));
+				network.setPingIntervalMillisec(parse.value());
+			}
+			else
+			{
+				network.logger(U"setPingInterval: invalid value");
+			}
+		}
+
+		if (SimpleGUI::Button(U"joinRandomOrCreateRoom", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.joinRandomOrCreateRoom(
+				text.text,
+				RoomCreateOption().maxPlayers(2)
+			);
+		}
+
+		if (SimpleGUI::Button(U"joinOrCreateRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.joinOrCreateRoom(
+				text.text,
+				RoomCreateOption().maxPlayers(2)
+			);
+		}
+
+		if (SimpleGUI::Button(U"createRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.createRoom(
+				text.text,
+				RoomCreateOption().maxPlayers(2).rejoinGracePeriod(none)
+			);
+		}
+
+		if (SimpleGUI::Button(U"joinRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.joinRoom(text.text);
+		}
+
+		if (SimpleGUI::Button(U"joinRandomRoom", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.joinRandomRoom();
+		}
+
+		if (SimpleGUI::Button(U"joinEventTargetGroup 1", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.joinEventTargetGroup(1);
+		}
+
+		if (SimpleGUI::Button(U"joinEventTargetGroup 2, 3", { x += offsetX, y }, ButtonWidth))
+		{
+			network.joinEventTargetGroup({ 2, 3 });
+		}
+
+		if (SimpleGUI::Button(U"joinEventTargetGroup All", { x += offsetX, y }, ButtonWidth))
+		{
+			network.joinAllEventTargetGroups();
+		}
+
+		if (SimpleGUI::Button(U"leaveEventTargetGroup 1, 2", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.leaveEventTargetGroup({ 1, 2 });
+		}
+
+		if (SimpleGUI::Button(U"leaveEventTargetGroup 3", { x += offsetX, y }, ButtonWidth))
+		{
+			network.joinEventTargetGroup(3);
+		}
+
+		if (SimpleGUI::Button(U"leaveEventTargetGroup All", { x += offsetX, y }, ButtonWidth))
+		{
+			network.leaveAllEventTargetGroups();
+		}
+
+		if (SimpleGUI::Button(U"sendEventTest 1, 2, 3, 4", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			Array<double> arr{ 0.5, 1.0, 1.5 };
+			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest1));
+			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest2), arr);
+			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest3), arr);
+			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest4), arr);
+		}
+
+		if (SimpleGUI::Button(U"sendEventTest Fallback", { x += offsetX, y }, ButtonWidth))
+		{
+			Array<double> arr{ 0.5, 1.0, 1.5 };
+			network.sendEvent(MultiplayerEvent(EventCode::FallbackTest));
+		}
+
+		if (SimpleGUI::Button(U"sendEventTo TargetGroup 1, 2, 3, 4", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::IntEvent, TargetGroup(1)), 1);
+			network.sendEvent(MultiplayerEvent(EventCode::IntEvent, TargetGroup(2)), 2);
+			network.sendEvent(MultiplayerEvent(EventCode::IntEvent, TargetGroup(3)), 3);
+			network.sendEvent(MultiplayerEvent(EventCode::IntEvent, TargetGroup(4)), 4);
+		}
+
+		if (SimpleGUI::Button(U"sendEventTo", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto target = network.getLocalPlayerByName(text.text);
+			if (target)
+			{
+				network.sendEvent(MultiplayerEvent(EventCode::IntEvent, { target.value().localID }), 0);
+			}
+		}
+
+		if (SimpleGUI::Button(U"sendEvent toAll toHost", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All), String(U"ToAll"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Host), String(U"ToHost"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent Others_CacheUntilLeaveRoom", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent Others_CacheForever", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Others_CacheForever), String(U"Others_CacheForever"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent All_CacheUntilLeaveRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent All_CacheForever", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All_CacheForever), String(U"All_CacheForever"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent Others_CacheUntilLeaveRoom", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom2"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent Others_CacheForever", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::Others_CacheForever), String(U"Others_CacheForever2"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent All_CacheUntilLeaveRoom", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom2"));
+		}
+
+		if (SimpleGUI::Button(U"sendEvent All_CacheForever", { x += offsetX, y }, ButtonWidth))
+		{
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::All_CacheForever), String(U"All_CacheForever2"));
+		}
+
+		if (SimpleGUI::Button(U"removeEventCache", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.removeEventCache(EventCode::StringEvent);
+		}
+
+		if (SimpleGUI::Button(U"removeEventCache2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removeEventCache(EventCode::StringEvent2);
+		}
+
+		if (SimpleGUI::Button(U"removeEventCache All", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removeEventCache(0);
+		}
+
+		if (SimpleGUI::Button(U"removeEventCache Of", { x += offsetX, y }, ButtonWidth))
+		{
+			auto target = network.getLocalPlayerByName(text.text);
+			if (target)
+			{
+				network.removeEventCache(EventCode::StringEvent, { target.value().localID });
+			}
+		}
+
+		if (SimpleGUI::Button(U"getSelf", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto player = network.getLocalPlayer();
+			network.logger(U"getSelf: ");
+			network.logger(U"- userName: {} ({})"_fmt(player.userName, network.getUserName()));
+			network.logger(U"- userID: {} ({})"_fmt(player.userID, network.getUserID()));
+			network.logger(U"- localID: {} ({})"_fmt(player.localID, network.getLocalPlayerID()));
+			network.logger(U"- isHost: {} ({})"_fmt(player.isHost, network.isHost()));
+			network.logger(U"- isActive: {}"_fmt(player.isActive));
+		}
+
+		if (SimpleGUI::Button(U"setName", { x += offsetX, y }, ButtonWidth))
+		{
+			network.setUserName(text.text);
+		}
+
+		if (SimpleGUI::Button(U"getHost", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto hostID = network.getHostLocalPlayerID();
+			auto player = network.getLocalPlayer(hostID);
+			network.logger(U"getHost: ");
+			network.logger(U"- userName: {} {}"_fmt(player.userName, network.getUserName(hostID)));
+			network.logger(U"- userID: {} ({})"_fmt(player.userID, network.getUserID()));
+			network.logger(U"- localID: {} ({})"_fmt(player.localID, hostID));
+			network.logger(U"- isHost: {}"_fmt(player.isHost));
+			network.logger(U"- isActive: {}"_fmt(player.isActive));
+		}
+
+		if (SimpleGUI::Button(U"setHost", { x += offsetX, y }, ButtonWidth))
+		{
+			auto target = network.getLocalPlayerByName(text.text);
+			if (target)
+			{
+				network.logger(U"setHost: ");
+				network.setHost(target.value().localID);
+			}
+			else
+			{
+				network.logger(U"setHost: player not found");
+			}
+		}
+
+		if (SimpleGUI::Button(U"getRoom", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto room = network.getCurrentRoom();
+			auto players = network.getLocalPlayers();
+			network.logger(U"getRoom: ");
+			network.logger(U"- name: {}"_fmt(room.name, network.getCurrentRoomName()));
+			network.logger(U"- isOpen: {}"_fmt(room.isOpen));
+			network.logger(U"- stats: {} / {}"_fmt(room.playerCount, room.maxPlayers));
+			network.logger(U"- properties: {}"_fmt(Format(room.properties)));
+			network.logger(U"- visibleRoomPropertyKeys: {}"_fmt(network.getVisibleRoomPropertyKeys()));
+			network.logger(U"- players:");
+			for (const auto& player : players)
+			{
+				network.logger(U"-- userName: {}"_fmt(player.userName));
+				network.logger(U"-- userID: {}"_fmt(player.userID));
+				network.logger(U"-- localID: {}"_fmt(player.localID));
+				network.logger(U"-- isHost: {}"_fmt(player.isHost));
+				network.logger(U"-- isActive: {}"_fmt(player.isActive));
+			}
+		}
+
+		if (SimpleGUI::Button(U"GetPlayerProperties", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto playerID = network.getLocalPlayerID();
+			auto properties = network.getPlayerProperties(playerID);
+			network.logger(U"GetPlayerProperties: ");
+			network.logger(U"- properties: {}"_fmt(Format(properties)));
+		}
+
+		if (SimpleGUI::Button(U"GetPlayerProperties Of", { x += offsetX, y }, ButtonWidth))
+		{
+			auto target = network.getLocalPlayerByName(text.text);
+			if (target)
+			{
+				auto playerID = target.value().localID;
+				auto properties = network.getPlayerProperties(playerID);
+				network.logger(U"GetPlayerProperties: ");
+				network.logger(U"- properties: {}"_fmt(Format(properties)));
+			}
+		}
+
+		if (SimpleGUI::Button(U"SetPlayerProperty 1", { x += offsetX, y }, ButtonWidth))
+		{
+			network.setPlayerProperty(U"1", U"apple");
+		}
+
+		if (SimpleGUI::Button(U"SetPlayerProperty 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.setPlayerProperty(U"2", U"banana");
+		}
+
+		if (SimpleGUI::Button(U"RemovePlayerProperty 1", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.removePlayerProperty(U"1");
+		}
+
+		if (SimpleGUI::Button(U"RemovePlayerProperty 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removePlayerProperty(U"2");
+		}
+
+		if (SimpleGUI::Button(U"RemovePlayerProperty 1, 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removePlayerProperty({ U"1", U"2" });
+		}
+
+		if (SimpleGUI::Button(U"GetRoomProperties", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			auto properties = network.getRoomProperties();
+			network.logger(U"GetRoomProperties: ");
+			network.logger(U"- properties: {}"_fmt(Format(properties)));
+		}
+
+		if (SimpleGUI::Button(U"SetRoomProperty 1", { x += offsetX, y }, ButtonWidth))
+		{
+			network.setRoomProperty(U"1", U"apple");
+		}
+
+		if (SimpleGUI::Button(U"SetRoomProperty 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.setRoomProperty(U"2", U"banana");
+		}
+
+		if (SimpleGUI::Button(U"RemoveRoomProperty 1", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.removeRoomProperty(U"1");
+		}
+
+		if (SimpleGUI::Button(U"RemoveRoomProperty 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removeRoomProperty(U"2");
+		}
+
+		if (SimpleGUI::Button(U"RemoveRoomProperty 1, 2", { x += offsetX, y }, ButtonWidth))
+		{
+			network.removeRoomProperty({ U"1", U"2" });
+		}
+
+		if (SimpleGUI::Button(U"GetPlayerPropertyByKey", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.logger(U"GetPlayerPropertyByKey");
+			network.logger(U"- {} : {}"_fmt(text.text, network.getPlayerProperty(text.text)));
+		}
+
+		if (SimpleGUI::Button(U"GetRoomPropertyByKey", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"GetRoomPropertyByKey");
+			network.logger(U"- {} : {}"_fmt(text.text, network.getPlayerProperty(text.text)));
+		}
+
+		if (SimpleGUI::Button(U"SetIsOpenInCurrentRoom: true", { x = initX, y += offsetY }, ButtonWidth))
+		{
+			network.logger(U"SetIsOpenInCurrentRoom: true");
+			network.setIsOpenInCurrentRoom(true);
+		}
+
+		if (SimpleGUI::Button(U"SetIsOpenInCurrentRoom: false", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"SetIsOpenInCurrentRoom: false");
+			network.setIsOpenInCurrentRoom(false);
+		}
+
+		if (SimpleGUI::Button(U"SetIsVisibleInCurrentRoom: true", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"SetIsOpenInCurrentRoom: true");
+			network.setIsVisibleInCurrentRoom(true);
+		}
+
+		if (SimpleGUI::Button(U"SetIsVisibleInCurrentRoom: false", { x += offsetX, y }, ButtonWidth))
+		{
+			network.logger(U"SetIsOpenInCurrentRoom: false");
+			network.setIsVisibleInCurrentRoom(false);
 		}
 
 		{
-			auto t = scrollBar.createTransformer();
+			String state{};
 
-			if (network.isActive() != (network.getClientState() != ClientState::Disconnected)) {
-				//Console << U"network.isActive() != (network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected):{},{}"_fmt(network.isActive(), network.getNetworkState() != Multiplayer_Photon::NetworkState::Disconnected);
-			}
-
-			network.update();
-
-
-			//int32 prev_state = state;
-			//state = network.getState();
-			//if (state != prev_state) {
-			//	//Console << U"state:{}"_fmt(state);
-			//	//Console << network.isActive();
-			//	//Console <<U"LoomNameList:" << network.getRoomNameList();
-			//	//Console << U"RoomName:" << network.getCurrentRoomName();
-			//}
-
-			//if (KeySpace.down()) {
-			//	//Console << U"now_state:{}"_fmt(state);
-			//	//Console << U"LoomNameList:" << network.getRoomNameList();
-			//	//Console << U"RoomName:" << network.getCurrentRoomName();
-			//}
-			//PutText(U"state:{}"_fmt(state), Scene::Center());
-
-			double y = -20;
-			if (SimpleGUI::Button(U"Connect", Vec2{ 1000, (y += 40) }, 160, not network.isActive()))
+			switch (network.getClientState())
 			{
-				const String userName = U"Siv";
-				network.connect(userName, U"jp");
+			case ClientState::Disconnected:
+				state = U"Disconnected";
+				break;
+			case ClientState::ConnectingToLobby:
+				state = U"ConnectingToLobby";
+				break;
+			case ClientState::InLobby:
+				state = U"InLobby";
+				break;
+			case ClientState::JoiningRoom:
+				state = U"JoiningRoom";
+				break;
+			case ClientState::InRoom:
+				state = U"InRoom";
+				break;
+			case ClientState::LeavingRoom:
+				state = U"LeavingRoom";
+				break;
+			case ClientState::Disconnecting:
+				state = U"Disconnecting";
+				break;
 			}
 
-			if (SimpleGUI::Button(U"Disconnect", Vec2{ 1000, (y += 40) }, 160, network.isActive()))
-			{
-				network.disconnect();
-			}
-
-			if (SimpleGUI::Button(U"Join Random Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
-			{
-				network.joinRandomRoom();
-			}
-
-			if (SimpleGUI::Button(U"Create Room", Vec2{ 1000, (y += 40) }, 160, network.isInLobby()))
-			{
-				const RoomName roomName = (network.getUserName() + U"'s room-" + ToHex(RandomUint32()));
-				network.createRoom(roomName, RoomCreateOption().rejoinGracePeriod(10s));
-			}
-
-			{
-				//SimpleGUI::CheckBox(rejoin, U"Rejoin", Vec2{ 700, 0 });
-
-				auto roomNameList = network.getRoomNameList();
-				double y = 0;
-				for (size_t i = 0; i < roomNameList.size(); ++i)
-				{
-					if (SimpleGUI::Button(roomNameList[i], Vec2{ 700, (y += 40) }, 160, network.isInLobby()))
-					{
-						network.joinRoom(roomNameList[i]);
-					}
-				}
-			}
-			if (SimpleGUI::Button(U"Leave Room", Vec2{ 1000, (y += 40) }, 160, network.isInRoom()))
-			{
-				network.leaveRoom();
-			}
-
-			if (SimpleGUI::Button(U"Leave Room (willComeBack) ", Vec2{ 1000, (y += 40) }, 160, network.isInRoom()))
-			{
-				network.leaveRoom(true);
-			}
-
-			if (SimpleGUI::Button(U"ResisterTest", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"eventCode: 111, 112 を送信 >>>";
-				network.sendEvent(MultiplayerEvent(111), int32(1), 2.2, Vec2(3, 3));
-				network.sendEvent(MultiplayerEvent(112));
-			}
-
-			if (SimpleGUI::Button(U"sendEvent TargetGroup", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"eventCode: 100 を　tagetgroup に 送信 >>>";
-				network.sendEvent(MultiplayerEvent(100), String(U"こんにちは。0"));
-				network.sendEvent(MultiplayerEvent(100, TargetGroup(1)), String(U"こんにちは。1"));
-				network.sendEvent(MultiplayerEvent(100, TargetGroup(2)), String(U"こんにちは。2"));
-				network.sendEvent(MultiplayerEvent(100, TargetGroup(3)), String(U"こんにちは。3"));
-				network.sendEvent(MultiplayerEvent(100, TargetGroup(4)), String(U"こんにちは。4"));
-			}
-
-			if (SimpleGUI::Button(U"join targetGroup 1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.joinEventTargetGroup(1);
-			}
-
-			if (SimpleGUI::Button(U"leave targetGroup 1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.leaveEventTargetGroup(1);
-			}
-
-			if (SimpleGUI::Button(U"join targetGroup {1,2}", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.joinEventTargetGroup({ 1,2 });
-			}
-
-			if (SimpleGUI::Button(U"leave targetGroup {1,2}", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.leaveEventTargetGroup({ 1,2 });
-			}
-
-			if (SimpleGUI::Button(U"join targetGroup All", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.joinAllEventTargetGroups();
-			}
-
-			if (SimpleGUI::Button(U"leave targetGroup All", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"targetGroup";
-				network.leaveAllEventTargetGroups();
-			}
-
-
-			if (SimpleGUI::Button(U"setPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"setPropaty";
-				network.setRoomProperty(U"key", U"value");
-			}
-
-			if (SimpleGUI::Button(U"getPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"getPropaty";
-				Print << network.getRoomProperties();
-			}
-
-			if (SimpleGUI::Button(U"removePropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removePropaty";
-				network.removeRoomProperty(U"key");
-			}
-
-			if (SimpleGUI::Button(U"removePropaty {} ", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removePropaty";
-				network.removeRoomProperties(Array<String>{});
-			}
-
-			if (SimpleGUI::Button(U"addPlayerProperty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"addPlayerProperty";
-			}
-
-			if (SimpleGUI::Button(U"addPlayerProperty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"addPlayerProperty2";
-			}
-
-			if (SimpleGUI::Button(U"getPlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"getPropaty";
-				Print << network.getPlayerProperties(network.getLocalPlayerID());
-			}
-
-			if (SimpleGUI::Button(U"removePlayerPropaty", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removePropaty";
-				network.removePlayerProperty(U"pos");
-			}
-
-			if (SimpleGUI::Button(U"removePlayerPropaty2", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removePropaty";
-				network.removePlayerProperties({ U"1",U"2" });
-			}
-
-			if (SimpleGUI::Button(U"getRoomList", Vec2{ 1000, (y += 40) }, 200, network.isInLobby()))
-			{
-				Print << U"getRoomList";
-				Print << network.getRoomNameList();
-				for (const auto& room : network.getRoomList())
-				{
-					Print << U"RoomName:" << room.name;
-					for (const auto& prop : room.properties)
-					{
-						Print << U"RoomProp:" << prop.first << U":" << prop.second;
-					}
-				}
-			}
-
-			if (SimpleGUI::Button(U"cache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"cache >>>";
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"こんにちは。u2"));
-				network.sendEvent(MultiplayerEvent(112, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f"));
-				network.sendEvent(MultiplayerEvent(113, EventReceiverOption::Others_CacheForever), String(U"こんにちは。f2"));
-
-			}
-
-			if (SimpleGUI::Button(U"removeCache", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removeCache >>>";
-				network.removeEventCache(112);
-			}
-
-			if (SimpleGUI::Button(U"removeCache_1", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				Print << U"removeCache >>>";
-				network.removeEventCache(112, { 1 });
-			}
-
-			if (SimpleGUI::Button(U"reconnectAndRejoin", Vec2{ 1000, (y += 40) }, 200))
-			{
-				network.reconnectAndRejoin();
-			}
-
-			if (SimpleGUI::Button(U"players", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				auto players = network.getLocalPlayers();
-				for (const auto& player : players)
-				{
-					Print << U"player:{} {}"_fmt(player.localID, player.userName);
-				}
-			}
-
-			if (SimpleGUI::Button(U"setHost", Vec2{ 1000, (y += 40) }, 200, network.isInRoom()))
-			{
-				network.setHost(network.getLocalPlayerID());
-			}
-
+			font(state).drawAt(Rect{ x = initX, y += offsetY, ButtonWidth, 40 }.center());
 		}
 
-		scrollBar.draw(ColorF(Palette::White).withA(0.5));
+		if (network.isInLobby())
+		{
+			font(U"Online: {}"_fmt(
+				network.getCountPlayersOnline()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+
+			font(U"InGame: {}"_fmt(
+				network.getCountPlayersIngame()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+
+			font(U"Room: {}"_fmt(
+				network.getCountGamesRunning()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+		}
+		else if (network.isInRoom())
+		{
+			font(U"Room: {} [{} / {}]"_fmt(
+				network.getCurrentRoomName(),
+				network.getPlayerCountInCurrentRoom(),
+				network.getMaxPlayersInCurrentRoom()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+
+			font(U"isOpen: {}"_fmt(
+				network.getIsOpenInCurrentRoom()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+
+			font(U"isVisible: {}"_fmt(
+				network.getIsVisibleInCurrentRoom()
+			)).drawAt(Rect{ x += offsetX, y, ButtonWidth, 40 }.center());
+		}
 	}
 }

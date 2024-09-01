@@ -480,10 +480,20 @@ namespace s3d
 		[[nodiscard]]
 		int32 getServerTimeOffsetMillisec() const;
 
-		/// @brief サーバーとのラウンドトリップタイムを取得します。
-		/// @return サーバーとのラウンドトリップタイム
+		/// @brief サーバーとのラウンドトリップタイム（ping）を取得します。
+		/// @return サーバーとのラウンドトリップタイム（ping）
+		/// @remark Web 版ではロビー内でこの関数は利用できません。
 		[[nodiscard]]
 		int32 getPingMillisec() const;
+
+		/// @brief getPingMillisec() で取得されるpingの更新頻度を取得します。
+		/// @return pingの更新頻度（ミリ秒）
+		[[nodiscard]]
+		int32 getPingIntervalMillisec() const;
+
+		/// @brief getPingMillisec() で取得されるpingの更新頻度を設定します。
+		/// @param intervalMillisec pingの更新頻度（ミリ秒）
+		void setPingIntervalMillisec(int32 intervalMillisec);
 
 	# if not SIV3D_PLATFORM(WEB)
 		/// @brief 受信したデータのサイズ（バイト）を返します。
@@ -545,7 +555,7 @@ namespace s3d
 		bool joinRandomOrCreateRoom(int32 expectedMaxPlayers, RoomNameView roomName);
 
 		/// @brief ランダムなルームに参加を試み、参加できるルームが無かった場合にルームの作成を試みます。
-		/// @param roomName 新しいルーム名
+		/// @param roomName 新しいルーム名。空の場合はランダムな名前が割り当てられます。
 		/// @param roomCreateOption ルーム作成オプション
 		/// @param propertyFilter プロパティがその通り設定されたルームにのみ参加を試みます。 （空の場合は指定なし）
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
@@ -554,10 +564,10 @@ namespace s3d
 		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<String, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 既存の指定した名前のルームに参加を試み、ルームがまだ作成されてなかった場合には、新しくルームの作成を試みます。
-		/// @param roomName ルーム名
+		/// @param roomName ルーム名。
 		/// @param option ルーム作成オプション
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
-		bool joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option);
+		bool joinOrCreateRoom(RoomNameView roomName, const RoomCreateOption& option = {});
 
 		/// @brief 既存の指定した名前のルームに参加を試みます。
 		/// @param roomName ルーム名
@@ -565,17 +575,17 @@ namespace s3d
 		bool joinRoom(RoomNameView roomName);
 
 		/// @brief 新しいルームの作成を試み、成功した場合にはそのルームに参加します。
-		/// @param roomName ルーム名
+		/// @param roomName ルーム名。空の場合はランダムな名前が割り当てられます。
 		/// @param maxPlayers ルームの最大人数（0の場合は指定なし）
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
 		bool createRoom(RoomNameView roomName, int32 maxPlayers = 0);
 
 		/// @brief 新しいルームの作成を試み、成功した場合にはそのルームに参加します。
-		/// @param roomName ルーム名
+		/// @param roomName ルーム名。空の場合はランダムな名前が割り当てられます。
 		/// @param option ルーム作成オプション
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
-		bool createRoom(RoomNameView roomName, const RoomCreateOption& option);
+		bool createRoom(RoomNameView roomName, const RoomCreateOption& option = {});
 
 		/// @brief ルームからの退出を試みます。
 		/// @param willComeBack 退出後にreconnectAndRejoin()で再参加する場合 true
@@ -979,6 +989,7 @@ namespace s3d
 		/// @brief 自身のプレイヤープロパティを追加します。
 		/// @param key キー
 		/// @param value 値
+		/// @remark キーと値にはなるべく短い文字列を用いることが推奨されます。
 		void setPlayerProperty(StringView key, StringView value);
 
 		/// @brief 自身のプレイヤープロパティを削除します。
@@ -999,6 +1010,7 @@ namespace s3d
 		/// @brief ルームプロパティを追加します。
 		/// @param key キー
 		/// @param value 値
+		/// @remark キーと値にはなるべく短い文字列を用いることが推奨されます。
 		void setRoomProperty(StringView key, StringView value);
 
 		/// @brief ルームプロパティを削除します。
@@ -1083,11 +1095,13 @@ namespace s3d
 
 		/// @brief ルームのプロパティが変更されたときに呼ばれます。
 		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
+		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
 		virtual void onRoomPropertiesChange(const HashTable<String,String>& changes) {}
 
 		/// @brief プレイヤーのプロパティが変更されたときに呼ばれます。
 		/// @param playerID 変更されたプレイヤーのローカルプレイヤー ID
 		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
+		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
 		virtual void onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes) {}
 
 		/// @brief ホストが変更されたときに呼ばれます。
@@ -1356,7 +1370,7 @@ namespace s3d
 
 		String m_lastJoinedRoomName;
 	# else
-		std::shared_ptr<PhotonDetail> m_detail;
+		std::unique_ptr<PhotonDetail> m_detail;
 	# endif
 
 		String m_secretPhotonAppID;
@@ -1365,7 +1379,7 @@ namespace s3d
 
 		Optional<String> m_requestedRegion;
 
-		HashTable<uint8, detail::CustomEventReceiver> table;
+		HashTable<uint8, detail::CustomEventReceiver> m_table;
 
 		std::function<void(StringView)> m_logger;
 	};
@@ -1414,7 +1428,7 @@ namespace s3d
 			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 
-		table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
+		m_table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
 	}
 
 	template<class EventCode>
