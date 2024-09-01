@@ -1,4 +1,4 @@
-# include <Siv3D.hpp> // OpenSiv3D v0.6.4
+﻿# include <Siv3D.hpp> // OpenSiv3D v0.6.4
 # include "Multiplayer_Photon.hpp"
 # include "PHOTON_APP_ID.SECRET"
 
@@ -35,7 +35,7 @@ public:
 
 	MyNetwork()
 	{
-		init(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console, Verbose::Yes, ConnectionProtocol::Wss);
+		init(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console, Verbose::Yes);
 
 		RegisterEventCallback(EventCode::IntEvent, &MyNetwork::onIntEvent);
 		RegisterEventCallback(EventCode::StringEvent, &MyNetwork::onStringEvent);
