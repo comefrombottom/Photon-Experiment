@@ -25,8 +25,8 @@ namespace s3d::detail {
 	{
 		if (errorCode)
 		{
-			photon.logger(U"- [Multiplayer_Photon] errorCode: ", errorCode);
-			photon.logger(U"- [Multiplayer_Photon] errorString: ", errorString);
+			photon.debugLog(U"- [Multiplayer_Photon] errorCode: ", errorCode);
+			photon.debugLog(U"- [Multiplayer_Photon] errorString: ", errorString);
 		}
 	}
 }
@@ -333,8 +333,8 @@ namespace s3d
 
 		void connectionErrorReturn(const int errorCode) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::connectionErrorReturn() [サーバへの接続が失敗したときに呼ばれる]");
-			m_context.logger(U"- [Multiplayer_Photon] errorCode: ", errorCode);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::connectionErrorReturn() [サーバへの接続が失敗したときに呼ばれる]");
+			m_context.debugLog(U"- [Multiplayer_Photon] errorCode: ", errorCode);
 			m_context.connectionErrorReturn(errorCode);
 		}
 
@@ -377,10 +377,10 @@ namespace s3d
 
 			const bool isSelf = (playerID == m_context.getLocalPlayerID());
 
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
-			m_context.logger(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", playerID);
-			m_context.logger(U"- [Multiplayer_Photon] isSelf [自分自身の参加？]: ", isSelf);
-			m_context.logger(U"- [Multiplayer_Photon] playerIDs [ルームの参加者一覧]: ", ids);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", playerID);
+			m_context.debugLog(U"- [Multiplayer_Photon] isSelf [自分自身の参加？]: ", isSelf);
+			m_context.debugLog(U"- [Multiplayer_Photon] playerIDs [ルームの参加者一覧]: ", ids);
 
 			m_context.joinRoomEventAction(localPlayer, ids, isSelf);
 		}
@@ -388,9 +388,9 @@ namespace s3d
 		// 誰か（自分を含む）がルームから退出したら呼ばれるコールバック
 		void leaveRoomEventAction(const int playerID, const bool isInactive) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomEventAction()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
-			m_context.logger(U"- [Multiplayer_Photon] isInactive: ", isInactive);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomEventAction()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"- [Multiplayer_Photon] isInactive: ", isInactive);
 
 			m_context.leaveRoomEventAction(playerID, isInactive);
 		}
@@ -560,9 +560,9 @@ namespace s3d
 		// connect() の結果を通知するコールバック
 		void connectReturn(const int errorCode, const ExitGames::Common::JString& errorString, const ExitGames::Common::JString& region, const ExitGames::Common::JString& cluster) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::connectReturn()");
-			m_context.logger(U"[Multiplayer_Photon] region: ", detail::ToString(region));
-			m_context.logger(U"- [Multiplayer_Photon] cluster: ", detail::ToString(cluster));
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::connectReturn()");
+			m_context.debugLog(U"[Multiplayer_Photon] region: ", detail::ToString(region));
+			m_context.debugLog(U"- [Multiplayer_Photon] cluster: ", detail::ToString(cluster));
 
 			detail::LogIfError(m_context, errorCode, detail::ToString(errorString));
 
@@ -572,14 +572,14 @@ namespace s3d
 		// disconnect() の結果を通知するコールバック
 		void disconnectReturn() override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::disconnectReturn() [サーバから切断されたときに呼ばれる]");
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::disconnectReturn() [サーバから切断されたときに呼ばれる]");
 
 			m_context.disconnectReturn();
 		}
 
 		void leaveRoomReturn(const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
 			
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -588,8 +588,8 @@ namespace s3d
 
 		void joinRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomReturn()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomReturn()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
 
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -598,8 +598,8 @@ namespace s3d
 
 		void joinRandomRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRandomRoomReturn()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRandomRoomReturn()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
 
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -608,8 +608,8 @@ namespace s3d
 
 		void createRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::createRoomReturn() [ルームを新規作成した結果を処理する]");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::createRoomReturn() [ルームを新規作成した結果を処理する]");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
 
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -618,8 +618,8 @@ namespace s3d
 
 		void joinOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
 			
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -628,8 +628,8 @@ namespace s3d
 
 		void joinRandomOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinRandomOrCreateRoomReturn()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRandomOrCreateRoomReturn()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
 
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -638,7 +638,7 @@ namespace s3d
 
 		void onRoomListUpdate() override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomListUpdate()");
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomListUpdate()");
 
 			m_context.onRoomListUpdate();
 		}
@@ -652,8 +652,8 @@ namespace s3d
 				return;
 			}
 
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomPropertiesChange()");
-			m_context.logger(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomPropertiesChange()");
+			m_context.debugLog(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
 
 			m_context.onRoomPropertiesChange(changes);
 		}
@@ -667,17 +667,17 @@ namespace s3d
 				return;
 			}
 			
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
-			m_context.logger(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
+			m_context.debugLog(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
 
 			m_context.onPlayerPropertiesChange(playerID, changes);
 		}
 
 		void onMasterClientChanged(const int newHostID, const int oldHostID) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onHostChange()");
-			m_context.logger(U"[Multiplayer_Photon] - netHostID: {}"_fmt(newHostID));
-			m_context.logger(U"[Multiplayer_Photon] - oldHostID: {}"_fmt(oldHostID));
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onHostChange()");
+			m_context.debugLog(U"[Multiplayer_Photon] - netHostID: {}"_fmt(newHostID));
+			m_context.debugLog(U"[Multiplayer_Photon] - oldHostID: {}"_fmt(oldHostID));
 
 			m_context.onHostChange(newHostID, oldHostID);
 		}
@@ -925,7 +925,7 @@ namespace s3d
 
 		if (not m_client->connect({ userID, userName }))
 		{
-			logger(U"[Multiplayer_Photon] ExitGmae::LoadBalancing::Client::connect() failed.");
+			debugLog(U"[Multiplayer_Photon] ExitGmae::LoadBalancing::Client::connect() failed.");
 			return false;
 		}
 
@@ -2541,10 +2541,10 @@ namespace s3d
 		template <class Type>
 		void PrintCustomEventAction(const Multiplayer_Photon& photon, const StringView type, const LocalPlayerID playerID, const uint8 eventCode, const Type& data)
 		{
-			photon.logger(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(", type, U")");
-			photon.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
-			photon.logger(U"- [Multiplayer_Photon] eventCode: ", eventCode);
-			photon.logger(U"- [Multiplayer_Photon] data: ", data);
+			photon.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(", type, U")");
+			photon.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
+			photon.debugLog(U"- [Multiplayer_Photon] eventCode: ", eventCode);
+			photon.debugLog(U"- [Multiplayer_Photon] data: ", data);
 		}
 	}
 

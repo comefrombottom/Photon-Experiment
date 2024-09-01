@@ -1343,7 +1343,7 @@ namespace s3d
 		void RegisterEventCallback(EventCode eventCode, EventCallbackType<T, Args...> callback);
 
 		template<class... Args>
-		void logger(Args&&... args) const
+		void debugLog(Args&&... args) const
 		{
 			if (m_verbose and m_logger) {
 				m_logger(Format(std::forward<Args>(args)...));
