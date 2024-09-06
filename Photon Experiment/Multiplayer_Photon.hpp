@@ -96,7 +96,7 @@ namespace s3d
 		bool isOpen = false;
 
 		// @brief ロビーから参照可能なルームプロパティ
-		HashTable<String, String> properties;
+		HashTable<uint8, String> properties;
 	};
 
 	/// @brief 通信時に用いるプロトコル
@@ -139,15 +139,10 @@ namespace s3d
 		/// @return 続けてメソッドを呼び出すための *this 参照
 		RoomCreateOption& maxPlayers(int32 maxPlayers);
 
-		/// @brief ルームに保存されるプロパティを設定します。
+		/// @brief ロビーから参照可能なルームに保存されるプロパティを設定します。
 		/// @param properties 追加するプロパティの辞書
 		/// @return 続けてメソッドを呼び出すための *this 参照
-		RoomCreateOption& properties(const HashTable<String, String>& properties);
-
-		/// @brief ロビーから見えるプロパティを設定します。
-		/// @param visibleRoomPropertyKeys ロビーから見えるプロパティのキーの一覧
-		/// @return 続けてメソッドを呼び出すための *this 参照
-		RoomCreateOption& visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys);
+		RoomCreateOption& properties(const HashTable<uint8, String>& properties);
 
 		/// @brief ルームから切断されたプレイヤーが再参加できる猶予時間を設定します。
 		/// @param rejoinGracePeriod 再参加できる猶予時間（0msの場合は再参加不可能、noneで無限）
@@ -172,10 +167,7 @@ namespace s3d
 		int32 maxPlayers() const noexcept;
 
 		[[nodiscard]]
-		const HashTable<String, String>& properties() const noexcept;
-
-		[[nodiscard]]
-		const Array<String>& visibleRoomPropertyKeys() const noexcept;
+		const HashTable<uint8, String>& properties() const noexcept;
 
 		[[nodiscard]]
 		const Optional<Milliseconds>& rejoinGracePeriod() const noexcept;
@@ -193,9 +185,7 @@ namespace s3d
 
 		int32 m_maxPlayers = 0;
 
-		HashTable<String, String> m_properties{};
-
-		Array<String> m_visibleRoomPropertyKeys{};
+		HashTable<uint8, String> m_properties{};
 
 		Optional<Milliseconds> m_rejoinGracePeriod = 0ms;
 
@@ -216,7 +206,7 @@ namespace s3d
 	};
 
 	/// @brief ターゲット指定オプション。キャッシュを利用すると以降に入室するプレイヤーにも送信されます。
-	enum class EventReceiverOption : uint8
+	enum class ReceiverOption : uint8
 	{
 		/// @brief 自分以外のプレイヤーに送信
 		Others,
@@ -271,7 +261,7 @@ namespace s3d
 		/// @remark Web 版では priorityIndex は無視されます。
 		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-		MultiplayerEvent(EventCode eventCode, EventReceiverOption receiverOption = EventReceiverOption::Others, uint8 priorityIndex = 0);
+		MultiplayerEvent(EventCode eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
@@ -301,7 +291,7 @@ namespace s3d
 		uint8 targetGroup() const noexcept;
 
 		[[nodiscard]]
-		EventReceiverOption receiverOption() const noexcept;
+		ReceiverOption receiverOption() const noexcept;
 
 		[[nodiscard]]
 		const Optional<Array<LocalPlayerID>>& targetList() const noexcept;
@@ -314,7 +304,7 @@ namespace s3d
 
 		uint8 m_targetGroup = 0;
 
-		EventReceiverOption m_receiverOption = EventReceiverOption::Others;
+		ReceiverOption m_receiverOption = ReceiverOption::Others;
 
 		Optional<Array<LocalPlayerID>> m_targetList;
 	};
@@ -545,7 +535,7 @@ namespace s3d
 		/// @param matchmakingMode マッチメイキングモード
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		bool joinRandomRoom(const HashTable<String,String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomRoom(const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 既存のランダムなルームに参加を試み、参加できるルームが無かった場合には新しいルームの作成を試みます。
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
@@ -561,7 +551,7 @@ namespace s3d
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param matchmakingMode マッチメイキングモード
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
-		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<String, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<uint8, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 既存の指定した名前のルームに参加を試み、ルームがまだ作成されてなかった場合には、新しくルームの作成を試みます。
 		/// @param roomName ルーム名。
@@ -869,7 +859,7 @@ namespace s3d
 		/// @brief キャッシュされたイベントを削除します。targetsで指定したプレイヤーに紐づくイベントのみ削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
 		/// @param targets 対象のプレイヤーのローカル ID
-		/// @remark プレイヤーに紐づくイベントとは、EventReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
+		/// @remark プレイヤーに紐づくイベントとは、ReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
 		template<class EventCode>
 		void removeEventCache(EventCode eventCode, const Array<LocalPlayerID>& targets);
 
@@ -970,64 +960,19 @@ namespace s3d
 		/// @param isVisible ルームを見えるようにする場合 true, それ以外の場合は false
 		void setIsVisibleInCurrentRoom(bool isVisible);
 
-		/// @brief 自身のプレイヤープロパティを取得します。
-		/// @param key キー
-		String getPlayerProperty(StringView key) const;
+		/// @brief 現在のルームに紐づけられたロビーから参照可能なプロパティを取得します。
+		/// @param key 0 以上 255 以下の整数
+		/// @return key に対応する値。存在しない場合は空の文字列
+		String getRoomProperty(uint8 key) const;
 
-		/// @brief 指定したユーザのプレイヤープロパティを取得します。
-		/// @param localPlayerID ルーム内のローカルプレイヤー ID
-		/// @param key キー
-		String getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const;
+		/// @brief 現在のルームに紐づけられたロビーから参照可能なプロパティの一覧を取得します。
+		HashTable<uint8, String> getRoomProperties() const;
 
-		/// @brief 自身のプレイヤープロパティを取得します。
-		HashTable<String,String> getPlayerProperties() const;
-
-		/// @brief 指定したユーザのプレイヤープロパティを取得します。
-		/// @param localPlayerID ルーム内のローカルプレイヤー ID
-		HashTable<String,String> getPlayerProperties(LocalPlayerID localPlayerID) const;
-
-		/// @brief 自身のプレイヤープロパティを追加します。
-		/// @param key キー
-		/// @param value 値
-		/// @remark キーと値にはなるべく短い文字列を用いることが推奨されます。
-		void setPlayerProperty(StringView key, StringView value);
-
-		/// @brief 自身のプレイヤープロパティを削除します。
-		/// @param key キー
-		void removePlayerProperty(StringView key);
-
-		/// @brief 自身のプレイヤープロパティを削除します。
-		/// @param keys キーリスト
-		void removePlayerProperty(const Array<String>& keys);
-
-		/// @brief ルームプロパティを取得します。存在しないキーに対しては空の文字列を返します。
-		/// @param key キー
-		String getRoomProperty(StringView key) const;
-
-		/// @brief ルームプロパティの一覧を取得します。存在しないキーに対しては空の文字列を返します。
-		HashTable<String,String> getRoomProperties() const;
-
-		/// @brief ルームプロパティを追加します。
-		/// @param key キー
-		/// @param value 値
-		/// @remark キーと値にはなるべく短い文字列を用いることが推奨されます。
-		void setRoomProperty(StringView key, StringView value);
-
-		/// @brief ルームプロパティを削除します。
-		/// @param key キー
-		void removeRoomProperty(StringView key);
-
-		/// @brief ルームプロパティを削除します。
-		/// @param keys キーリスト
-		void removeRoomProperty(const Array<String>& keys);
-
-		/// @brief ロビーから参照可能なルームプロパティのキーリストを返します。
-		/// @return ロビーから参照可能なルームプロパティのキーリスト
-		Array<String> getVisibleRoomPropertyKeys() const;
-
-		/// @brief ロビーから参照可能なルームプロパティのキーリストを設定します。
-		/// @param keys キーリスト
-		void setVisibleRoomPropertyKeys(const Array<String>& keys);
+		/// @brief 現在のルームに紐づけられたロビーから参照可能なプロパティを追加します。
+		/// @param key 0 以上 255 以下の整数
+		/// @param value key に対応させる値
+		/// @remark 値にはなるべく短い文字列を用いることが推奨されます。
+		void setRoomProperty(uint8 key, StringView value);
 
 		/// @brief サーバーとの接続が切断されたときに呼ばれます。
 		/// @param errorCode エラーコード
@@ -1096,13 +1041,7 @@ namespace s3d
 		/// @brief ルームのプロパティが変更されたときに呼ばれます。
 		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
 		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
-		virtual void onRoomPropertiesChange(const HashTable<String,String>& changes) {}
-
-		/// @brief プレイヤーのプロパティが変更されたときに呼ばれます。
-		/// @param playerID 変更されたプレイヤーのローカルプレイヤー ID
-		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
-		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
-		virtual void onPlayerPropertiesChange(LocalPlayerID playerID, const HashTable<String, String>& changes) {}
+		virtual void onRoomPropertiesChange(const HashTable<uint8, String>& changes) {}
 
 		/// @brief ホストが変更されたときに呼ばれます。
 		/// @param newHostPlayerID 新しいホストのローカルプレイヤー ID
@@ -1343,7 +1282,7 @@ namespace s3d
 		void RegisterEventCallback(EventCode eventCode, EventCallbackType<T, Args...> callback);
 
 		template<class... Args>
-		void logger(Args&&... args) const
+		void debugLog(Args&&... args) const
 		{
 			if (m_verbose and m_logger) {
 				m_logger(Format(std::forward<Args>(args)...));
@@ -1387,7 +1326,7 @@ namespace s3d
 	namespace detail
 	{
 		template<class T, class... Args>
-		struct WrapperImpl
+		struct EventWrapperImpl
 		{
 			static void wrapper(Multiplayer_Photon& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader)
 			{
@@ -1423,25 +1362,47 @@ namespace s3d
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		if constexpr (std::is_enum_v<EventCode>)
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
 		}
 
-		m_table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::WrapperImpl<T, Args...>::wrapper);
+		m_table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::EventWrapperImpl<T, Args...>::wrapper);
 	}
 
 	template<class EventCode>
-	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, EventReceiverOption receiverOption, uint8 priorityIndex)
+	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, ReceiverOption receiverOption, uint8 priorityIndex)
 		: m_eventCode(static_cast<uint8>(eventCode))
 		, m_receiverOption(receiverOption)
 		, m_priorityIndex(priorityIndex)
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		if constexpr (std::is_enum_v<EventCode>)
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
 		}
 	}
 
@@ -1453,9 +1414,20 @@ namespace s3d
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		if constexpr (std::is_enum_v<EventCode>)
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
 		}
 	}
 
@@ -1466,10 +1438,21 @@ namespace s3d
 		, m_priorityIndex(priorityIndex)
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-
-		if (not InRange(static_cast<int>(eventCode), 1, 199))
+		
+		if constexpr (std::is_enum_v<EventCode>)
 		{
-			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
 		}
 	}
 
@@ -1480,7 +1463,22 @@ namespace s3d
 	void Multiplayer_Photon::removeEventCache(EventCode eventCode)
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-
+		
+		if constexpr (std::is_enum_v<EventCode>)
+		{
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
 		removeEventCache(static_cast<uint8>(eventCode));
 	}
 
@@ -1492,6 +1490,22 @@ namespace s3d
 	{
 		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
 		
+		if constexpr (std::is_enum_v<EventCode>)
+		{
+			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
+			if (code < 1 or 199 < code)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+		else
+		{
+			if (eventCode < 1 or 199 < eventCode)
+			{
+				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+			}
+		}
+
 		removeEventCache(static_cast<uint8>(eventCode), targets);
 	}
 }
