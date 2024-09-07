@@ -376,6 +376,11 @@ namespace s3d
 
 			const bool isSelf = (playerID == m_context.getLocalPlayerID());
 
+			if (isSelf)
+			{
+				m_context.m_lastJoinedRoomName = m_context.getCurrentRoomName();
+			}
+
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
 			m_context.debugLog(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", playerID);
 			m_context.debugLog(U"- [Multiplayer_Photon] isSelf [自分自身の参加？]: ", isSelf);
@@ -429,7 +434,6 @@ namespace s3d
 
 				if (mainType == L"Array")
 				{
-# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BOOLEAN:
@@ -496,7 +500,6 @@ namespace s3d
 					default:
 						break;
 					}
-# endif
 				}
 				else if (mainType == L"Blob")
 				{
