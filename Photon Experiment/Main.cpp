@@ -35,7 +35,7 @@ public:
 
 	MyNetwork()
 	{
-		init(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console, Verbose::Yes);
+		init(std::string(SIV3D_OBFUSCATE(PHOTON_APP_ID)), U"1.0", Console, Verbose::Yes, ConnectionProtocol::Default);
 
 		RegisterEventCallback(EventCode::IntEvent, &MyNetwork::onIntEvent);
 		RegisterEventCallback(EventCode::StringEvent, &MyNetwork::onStringEvent);
@@ -299,48 +299,48 @@ void Main()
 
 		if (SimpleGUI::Button(U"sendEvent toAll toHost", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All), String(U"ToAll"));
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Host), String(U"ToHost"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::All), String(U"ToAll"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::Host), String(U"ToHost"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent Others_CacheUntilLeaveRoom", { x = initX, y += offsetY }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent Others_CacheForever", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::Others_CacheForever), String(U"Others_CacheForever"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::Others_CacheForever), String(U"Others_CacheForever"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent All_CacheUntilLeaveRoom", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent All_CacheForever", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, EventReceiverOption::All_CacheForever), String(U"All_CacheForever"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent, ReceiverOption::All_CacheForever), String(U"All_CacheForever"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent Others_CacheUntilLeaveRoom", { x = initX, y += offsetY }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom2"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, ReceiverOption::Others_CacheUntilLeaveRoom), String(U"Others_CacheUntilLeaveRoom2"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent Others_CacheForever", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::Others_CacheForever), String(U"Others_CacheForever2"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, ReceiverOption::Others_CacheForever), String(U"Others_CacheForever2"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent All_CacheUntilLeaveRoom", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom2"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, ReceiverOption::All_CacheUntilLeaveRoom), String(U"All_CacheUntilLeaveRoom2"));
 		}
 
 		if (SimpleGUI::Button(U"sendEvent All_CacheForever", { x += offsetX, y }, ButtonWidth))
 		{
-			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, EventReceiverOption::All_CacheForever), String(U"All_CacheForever2"));
+			network.sendEvent(MultiplayerEvent(EventCode::StringEvent2, ReceiverOption::All_CacheForever), String(U"All_CacheForever2"));
 		}
 
 		if (SimpleGUI::Button(U"removeEventCache", { x = initX, y += offsetY }, ButtonWidth))
@@ -418,7 +418,6 @@ void Main()
 			network.debugLog(U"- isOpen: {}"_fmt(room.isOpen));
 			network.debugLog(U"- stats: {} / {}"_fmt(room.playerCount, room.maxPlayers));
 			network.debugLog(U"- properties: {}"_fmt(Format(room.properties)));
-			network.debugLog(U"- visibleRoomPropertyKeys: {}"_fmt(network.getVisibleRoomPropertyKeys()));
 			network.debugLog(U"- players:");
 			for (const auto& player : players)
 			{
@@ -430,51 +429,6 @@ void Main()
 			}
 		}
 
-		if (SimpleGUI::Button(U"GetPlayerProperties", { x = initX, y += offsetY }, ButtonWidth))
-		{
-			auto playerID = network.getLocalPlayerID();
-			auto properties = network.getPlayerProperties(playerID);
-			network.debugLog(U"GetPlayerProperties: ");
-			network.debugLog(U"- properties: {}"_fmt(Format(properties)));
-		}
-
-		if (SimpleGUI::Button(U"GetPlayerProperties Of", { x += offsetX, y }, ButtonWidth))
-		{
-			auto target = network.getLocalPlayerByName(text.text);
-			if (target)
-			{
-				auto playerID = target.value().localID;
-				auto properties = network.getPlayerProperties(playerID);
-				network.debugLog(U"GetPlayerProperties: ");
-				network.debugLog(U"- properties: {}"_fmt(Format(properties)));
-			}
-		}
-
-		if (SimpleGUI::Button(U"SetPlayerProperty 1", { x += offsetX, y }, ButtonWidth))
-		{
-			network.setPlayerProperty(U"1", U"apple");
-		}
-
-		if (SimpleGUI::Button(U"SetPlayerProperty 2", { x += offsetX, y }, ButtonWidth))
-		{
-			network.setPlayerProperty(U"2", U"banana");
-		}
-
-		if (SimpleGUI::Button(U"RemovePlayerProperty 1", { x = initX, y += offsetY }, ButtonWidth))
-		{
-			network.removePlayerProperty(U"1");
-		}
-
-		if (SimpleGUI::Button(U"RemovePlayerProperty 2", { x += offsetX, y }, ButtonWidth))
-		{
-			network.removePlayerProperty(U"2");
-		}
-
-		if (SimpleGUI::Button(U"RemovePlayerProperty 1, 2", { x += offsetX, y }, ButtonWidth))
-		{
-			network.removePlayerProperty({ U"1", U"2" });
-		}
-
 		if (SimpleGUI::Button(U"GetRoomProperties", { x = initX, y += offsetY }, ButtonWidth))
 		{
 			auto properties = network.getRoomProperties();
@@ -484,39 +438,36 @@ void Main()
 
 		if (SimpleGUI::Button(U"SetRoomProperty 1", { x += offsetX, y }, ButtonWidth))
 		{
-			network.setRoomProperty(U"1", U"apple");
+			network.setRoomProperty(1, U"apple");
 		}
 
 		if (SimpleGUI::Button(U"SetRoomProperty 2", { x += offsetX, y }, ButtonWidth))
 		{
-			network.setRoomProperty(U"2", U"banana");
+			network.setRoomProperty(2, U"banana");
 		}
 
-		if (SimpleGUI::Button(U"RemoveRoomProperty 1", { x = initX, y += offsetY }, ButtonWidth))
+		if (SimpleGUI::Button(U"SetRoomProperty 1 empty", { x = initX, y += offsetY }, ButtonWidth))
 		{
-			network.removeRoomProperty(U"1");
+			network.setRoomProperty(1, U"");
 		}
 
-		if (SimpleGUI::Button(U"RemoveRoomProperty 2", { x += offsetX, y }, ButtonWidth))
+		if (SimpleGUI::Button(U"SetRemoveRoomProperty 2 empty", { x += offsetX, y }, ButtonWidth))
 		{
-			network.removeRoomProperty(U"2");
+			network.setRoomProperty(2, U"");
 		}
 
-		if (SimpleGUI::Button(U"RemoveRoomProperty 1, 2", { x += offsetX, y }, ButtonWidth))
+		if (SimpleGUI::Button(U"GetRoomPropertyByKey", { x = initX, y += offsetY }, ButtonWidth))
 		{
-			network.removeRoomProperty({ U"1", U"2" });
-		}
-
-		if (SimpleGUI::Button(U"GetPlayerPropertyByKey", { x = initX, y += offsetY }, ButtonWidth))
-		{
-			network.debugLog(U"GetPlayerPropertyByKey");
-			network.debugLog(U"- {} : {}"_fmt(text.text, network.getPlayerProperty(text.text)));
-		}
-
-		if (SimpleGUI::Button(U"GetRoomPropertyByKey", { x += offsetX, y }, ButtonWidth))
-		{
-			network.debugLog(U"GetRoomPropertyByKey");
-			network.debugLog(U"- {} : {}"_fmt(text.text, network.getPlayerProperty(text.text)));
+			Optional<int32> parse = ParseOpt<int32>(text.text);
+			if (parse)
+			{
+				network.debugLog(U"GetRoomPropertyByKey");
+				network.debugLog(U"- {} : {}"_fmt(text.text, network.getRoomProperty(parse.value())));
+			}
+			else
+			{
+				network.debugLog(U"GetRoomPropertyByKey: integer required");
+			}
 		}
 
 		if (SimpleGUI::Button(U"SetIsOpenInCurrentRoom: true", { x = initX, y += offsetY }, ButtonWidth))

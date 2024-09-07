@@ -55,9 +55,9 @@ namespace s3d
 		}
 
 		[[nodiscard]]
-		static HashTable<String, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
+		static HashTable<uint8, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
 		{
-			HashTable<String, String> result;
+			HashTable<uint8, String> result {};
 
 			const auto& keys = data.getKeys();
 
@@ -65,20 +65,20 @@ namespace s3d
 			{
 				const ExitGames::Common::JString key = ObjectToJString(keys[i]);
 				const ExitGames::Common::JString value = ObjectToJString(*data.getValue(key));
-				result[detail::ToString(key)] = detail::ToString(value);
+				result[static_cast<uint8>(key.charAt(0))] = detail::ToString(value);
 			}
 
 			return result;
 		}
 
 		[[nodiscard]]
-		static ExitGames::Common::Hashtable ToPhotonHashtable(const HashTable<String, String>& table)
+		static ExitGames::Common::Hashtable ToPhotonHashtable(const HashTable<uint8, String>& table)
 		{
 			ExitGames::Common::Hashtable result;
 
 			for (const auto& [key, value] : table)
 			{
-				result.put(ToJString(key), ToJString(value));
+				result.put(ToJString(String(1, static_cast<char32>(key))), ToJString(value));
 			}
 
 			return result;
@@ -128,7 +128,6 @@ namespace s3d
 				roomOptions.setPlayerTtl(-1);
 			}
 			roomOptions.setEmptyRoomTtl(static_cast<int32>(option.roomDestroyGracePeriod().count()));
-			roomOptions.setPropsListedInLobby(ToJStringJVector(option.visibleRoomPropertyKeys()));
 			return roomOptions;
 		}
 
@@ -145,15 +144,15 @@ namespace s3d
 	public:
 
 		SIV3D_NODISCARD_CXX20
-		CustomType_Photon() = default;
+			CustomType_Photon() = default;
 
 		SIV3D_NODISCARD_CXX20
-		explicit CustomType_Photon(const Type& value)
+			explicit CustomType_Photon(const Type& value)
 			: ExitGames::Common::CustomType<CustomType_Photon<Type, customTypeIndex>, customTypeIndex>{}
 			, m_value{ value } {}
 
 		SIV3D_NODISCARD_CXX20
-		CustomType_Photon(const CustomType_Photon& toCopy)
+			CustomType_Photon(const CustomType_Photon& toCopy)
 			: ExitGames::Common::CustomType<CustomType_Photon<Type, customTypeIndex>, customTypeIndex>{}
 			, m_value{ toCopy.m_value } {}
 
@@ -209,25 +208,25 @@ namespace s3d
 		Type m_value{};
 	};
 
-	using PhotonColor		= CustomType_Photon<Color, 0>;
-	using PhotonColorF		= CustomType_Photon<ColorF, 1>;
-	using PhotonHSV			= CustomType_Photon<HSV, 2>;
-	using PhotonPoint		= CustomType_Photon<Point, 3>;
-	using PhotonVec2		= CustomType_Photon<Vec2, 4>;
-	using PhotonVec3		= CustomType_Photon<Vec3, 5>;
-	using PhotonVec4		= CustomType_Photon<Vec4, 6>;
-	using PhotonFloat2		= CustomType_Photon<Float2, 7>;
-	using PhotonFloat3		= CustomType_Photon<Float3, 8>;
-	using PhotonFloat4		= CustomType_Photon<Float4, 9>;
-	using PhotonMat3x2		= CustomType_Photon<Mat3x2, 10>;
-	using PhotonRect		= CustomType_Photon<Rect, 11>;
-	using PhotonCircle		= CustomType_Photon<Circle, 12>;
-	using PhotonLine		= CustomType_Photon<Line, 13>;
-	using PhotonTriangle	= CustomType_Photon<Triangle, 14>;
-	using PhotonRectF		= CustomType_Photon<RectF, 15>;
-	using PhotonQuad		= CustomType_Photon<Quad, 16>;
-	using PhotonEllipse		= CustomType_Photon<Ellipse, 17>;
-	using PhotonRoundRect	= CustomType_Photon<RoundRect, 18>;
+	using PhotonColor = CustomType_Photon<Color, 0>;
+	using PhotonColorF = CustomType_Photon<ColorF, 1>;
+	using PhotonHSV = CustomType_Photon<HSV, 2>;
+	using PhotonPoint = CustomType_Photon<Point, 3>;
+	using PhotonVec2 = CustomType_Photon<Vec2, 4>;
+	using PhotonVec3 = CustomType_Photon<Vec3, 5>;
+	using PhotonVec4 = CustomType_Photon<Vec4, 6>;
+	using PhotonFloat2 = CustomType_Photon<Float2, 7>;
+	using PhotonFloat3 = CustomType_Photon<Float3, 8>;
+	using PhotonFloat4 = CustomType_Photon<Float4, 9>;
+	using PhotonMat3x2 = CustomType_Photon<Mat3x2, 10>;
+	using PhotonRect = CustomType_Photon<Rect, 11>;
+	using PhotonCircle = CustomType_Photon<Circle, 12>;
+	using PhotonLine = CustomType_Photon<Line, 13>;
+	using PhotonTriangle = CustomType_Photon<Triangle, 14>;
+	using PhotonRectF = CustomType_Photon<RectF, 15>;
+	using PhotonQuad = CustomType_Photon<Quad, 16>;
+	using PhotonEllipse = CustomType_Photon<Ellipse, 17>;
+	using PhotonRoundRect = CustomType_Photon<RoundRect, 18>;
 
 	static void RegisterTypes()
 	{
@@ -287,7 +286,7 @@ namespace s3d
 		explicit PhotonDetail(Multiplayer_Photon& context)
 			: m_context{ context }
 		{
-		# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 			m_receiveEventFunctions.emplace(uint8{ 0 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Color, 0>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 1 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<ColorF, 1>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 2 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<HSV, 2>(playerID, eventCode, data); });
@@ -307,7 +306,7 @@ namespace s3d
 			m_receiveEventFunctions.emplace(uint8{ 16 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Quad, 16>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 17 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<Ellipse, 17>(playerID, eventCode, data); });
 			m_receiveEventFunctions.emplace(uint8{ 18 }, [this](const int playerID, const nByte eventCode, const ExitGames::Common::Object& data) { receivedCustomType<RoundRect, 18>(playerID, eventCode, data); });
-		# endif
+# endif
 		}
 
 		void onAvailableRegions(const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegions, [[maybe_unused]] const ExitGames::Common::JVector<ExitGames::Common::JString>& availableRegionServers) override
@@ -350,7 +349,7 @@ namespace s3d
 
 		void serverErrorReturn([[maybe_unused]] const int errorCode) override
 		{
-			
+
 		}
 
 		// 誰か（自分を含む）がルームに参加したら呼ばれるコールバック
@@ -368,14 +367,19 @@ namespace s3d
 
 			const LocalPlayer localPlayer
 			{
-				.localID	= playerID,
-				.userName	= detail::ToString(player.getName()),
-				.userID		= detail::ToString(player.getUserID()),
-				.isHost		= player.getIsMasterClient(),
-				.isActive	= (not player.getIsInactive()),
+				.localID = playerID,
+				.userName = detail::ToString(player.getName()),
+				.userID = detail::ToString(player.getUserID()),
+				.isHost = player.getIsMasterClient(),
+				.isActive = (not player.getIsInactive()),
 			};
 
 			const bool isSelf = (playerID == m_context.getLocalPlayerID());
+
+			if (isSelf)
+			{
+				m_context.m_lastJoinedRoomName = m_context.getCurrentRoomName();
+			}
 
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinRoomEventAction() [誰か（自分を含む）が現在のルームに参加したときに呼ばれる]");
 			m_context.debugLog(U"- [Multiplayer_Photon] playerID [参加した人の ID]: ", playerID);
@@ -398,7 +402,7 @@ namespace s3d
 		// ルームで他人が sendEvent したら呼ばれるコールバック
 		void customEventAction(const int playerID, const nByte eventCode, const ExitGames::Common::Object& _data) override
 		{
-		# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
 			const ExitGames::Common::ValueObject<uint8*> data{ _data };
 			const auto size = data.getSizes()[0];
 
@@ -415,7 +419,7 @@ namespace s3d
 			else {
 				m_context.customEventAction(playerID, eventCode, reader);
 			}
-		# else
+# else
 			const uint8 type = _data.getType();
 
 			if (type == ExitGames::Common::TypeCode::CUSTOM)
@@ -430,93 +434,91 @@ namespace s3d
 
 				if (mainType == L"Array")
 				{
-				# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BOOLEAN:
-						{
-							const auto p = ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<bool>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<bool*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<bool>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::BYTE:
-						{
-							const auto p = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<uint8>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<uint8>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::SHORT:
-						{
-							const auto p = ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<int16>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<int16*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<int16>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::INTEGER:
-						{
-							const auto p = ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<int32>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<int32*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<int32>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::LONG:
-						{
-							const auto p = ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<int64>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<int64*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<int64>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::FLOAT:
-						{
-							const auto p = ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<float>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<float*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<float>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::DOUBLE:
-						{
-							const auto p = ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values"))).getSizes();
-							m_context.customEventAction(playerID, eventCode, Array<double>(p, (p + length)));
-							break;
-						}
+					{
+						const auto p = ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<double*>(eventDataContent.getValue(L"values"))).getSizes();
+						m_context.customEventAction(playerID, eventCode, Array<double>(p, (p + length)));
+						break;
+					}
 					case ExitGames::Common::TypeCode::STRING:
+					{
+						const auto values = ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values"))).getSizes();
+						Array<String> data(length);
+						for (short i = 0; i < length; ++i)
 						{
-							const auto values = ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<ExitGames::Common::JString*>(eventDataContent.getValue(L"values"))).getSizes();
-							Array<String> data(length);
-							for (short i = 0; i < length; ++i)
-							{
-								data[i] = detail::ToString(values[i]);
-							}
-							m_context.customEventAction(playerID, eventCode, data);
-							break;
+							data[i] = detail::ToString(values[i]);
 						}
+						m_context.customEventAction(playerID, eventCode, data);
+						break;
+					}
 					default:
 						break;
 					}
-				# endif
 				}
 				else if (mainType == L"Blob")
 				{
 					switch (eventDataContent.getValue(L"values")->getType())
 					{
 					case ExitGames::Common::TypeCode::BYTE:
-						{
-							const auto values = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
-							const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
-							Deserializer<MemoryViewReader> reader{ values, length };
-							if (m_context.m_table.contains(eventCode)) {
-								auto& receiver = m_context.m_table[eventCode];
-								(receiver.second)(m_context, receiver.first, playerID, reader);
-							}
-							else {
-								m_context.customEventAction(playerID, eventCode, reader);
-							}
-							break;
+					{
+						const auto values = ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values")).getDataCopy();
+						const auto length = *(ExitGames::Common::ValueObject<uint8*>(eventDataContent.getValue(L"values"))).getSizes();
+						Deserializer<MemoryViewReader> reader{ values, length };
+						if (m_context.m_table.contains(eventCode)) {
+							auto& receiver = m_context.m_table[eventCode];
+							(receiver.second)(m_context, receiver.first, playerID, reader);
 						}
+						else {
+							m_context.customEventAction(playerID, eventCode, reader);
+						}
+						break;
+					}
 					default:
 						break;
 					}
@@ -554,7 +556,7 @@ namespace s3d
 					break;
 				}
 			}
-		# endif
+# endif
 		}
 
 		// connect() の結果を通知するコールバック
@@ -579,7 +581,7 @@ namespace s3d
 
 		void leaveRoomReturn(const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
+			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
 			
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -618,8 +620,8 @@ namespace s3d
 
 		void joinOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
-			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
+			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
 			
 			detail::LogIfError(m_context, errorCode, errorString);
 
@@ -667,8 +669,8 @@ namespace s3d
 				return;
 			}
 			
-			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
-			m_context.debugLog(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
+			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
+			m_context.logger(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
 
 			m_context.onPlayerPropertiesChange(playerID, changes);
 		}
@@ -688,14 +690,14 @@ namespace s3d
 
 		HashTable<uint8, std::function<void(const int, const nByte, const ExitGames::Common::Object&)>> m_receiveEventFunctions;
 
-	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		template <class Type, uint8 N>
 		void receivedCustomType(const int playerID, const nByte eventCode, const ExitGames::Common::Object& eventContent)
 		{
 			const auto value = ExitGames::Common::ValueObject<CustomType_Photon<Type, N>>(eventContent).getDataCopy().getValue();
 			m_context.customEventAction(playerID, eventCode, value);
 		}
-	# endif
+# endif
 	};
 }
 
@@ -732,15 +734,9 @@ namespace s3d {
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::properties(const HashTable<String, String>& properties)
+	RoomCreateOption& RoomCreateOption::properties(const HashTable<uint8, String>& properties)
 	{
 		m_properties = properties;
-		return *this;
-	}
-
-	RoomCreateOption& RoomCreateOption::visibleRoomPropertyKeys(const Array<String>& visibleRoomPropertyKeys)
-	{
-		m_visibleRoomPropertyKeys = visibleRoomPropertyKeys;
 		return *this;
 	}
 
@@ -776,14 +772,9 @@ namespace s3d {
 		return m_maxPlayers;
 	}
 
-	const HashTable<String, String>& RoomCreateOption::properties() const noexcept
+	const HashTable<uint8, String>& RoomCreateOption::properties() const noexcept
 	{
 		return m_properties;
-	}
-
-	const Array<String>& RoomCreateOption::visibleRoomPropertyKeys() const noexcept
-	{
-		return m_visibleRoomPropertyKeys;
 	}
 
 	const Optional<Milliseconds>& RoomCreateOption::rejoinGracePeriod() const noexcept
@@ -825,7 +816,7 @@ namespace s3d {
 		return m_targetGroup;
 	}
 
-	EventReceiverOption MultiplayerEvent::receiverOption() const noexcept
+	ReceiverOption MultiplayerEvent::receiverOption() const noexcept
 	{
 		return m_receiverOption;
 	}
@@ -864,13 +855,13 @@ namespace s3d {
 	{
 		disconnect();
 
-	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		UnregisterTypes();
-	# endif
+# endif
 
-	# if SIV3D_PLATFORM(WEB)
+# if SIV3D_PLATFORM(WEB)
 		g_detail = nullptr;
-	# endif
+# endif
 	}
 
 	void Multiplayer_Photon::init(const std::string_view secretPhotonAppID, const StringView photonAppVersion, const Verbose verbose, const ConnectionProtocol protocol)
@@ -906,9 +897,9 @@ namespace s3d
 		m_logger = logger;
 		m_verbose = verbose.getBool();
 
-	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		RegisterTypes();
-	# endif
+# endif
 	}
 
 	bool Multiplayer_Photon::connect(const StringView userName_, const Optional<String>& region)
@@ -918,7 +909,7 @@ namespace s3d
 		m_client.reset();
 
 		m_client = std::make_unique<ExitGames::LoadBalancing::Client>(*m_listener, detail::ToJString(m_secretPhotonAppID), detail::ToJString(m_photonAppVersion),
-		  ExitGames::LoadBalancing::ClientConstructOptions{ FromEnum(m_connectionProtocol), false, (m_requestedRegion ? ExitGames::LoadBalancing::RegionSelectionMode::SELECT : ExitGames::LoadBalancing::RegionSelectionMode::BEST)});
+		  ExitGames::LoadBalancing::ClientConstructOptions{ FromEnum(m_connectionProtocol), false, (m_requestedRegion ? ExitGames::LoadBalancing::RegionSelectionMode::SELECT : ExitGames::LoadBalancing::RegionSelectionMode::BEST) });
 
 		const auto userName = detail::ToJString(userName_);
 		const auto userID = ExitGames::LoadBalancing::AuthenticationValues{}.setUserID(userName + static_cast<uint32>(Time::GetMillisecSinceEpoch()));
@@ -1054,11 +1045,11 @@ namespace s3d
 
 			RoomInfo roomInfo
 			{
-				.name		= detail::ToString(room->getName()),
-				.playerCount	= room->getPlayerCount(),
-				.maxPlayers		= room->getMaxPlayers(),
-				.isOpen			= room->getIsOpen(),
-				.properties		= detail::PhotonHashtableToStringHashTable(room->getCustomProperties()),
+				.name = detail::ToString(room->getName()),
+				.playerCount = room->getPlayerCount(),
+				.maxPlayers = room->getMaxPlayers(),
+				.isOpen = room->getIsOpen(),
+				.properties = detail::PhotonHashtableToStringHashTable(room->getCustomProperties()),
 			};
 
 			results[i] = std::move(roomInfo);
@@ -1127,7 +1118,7 @@ namespace s3d
 	}
 
 	void Multiplayer_Photon::setPingIntervalMillisec(int32 intervalMillisec)
-	{	
+	{
 		if (not m_client)
 		{
 			return;
@@ -1201,7 +1192,7 @@ namespace s3d
 		return m_client->opJoinRandomRoom({}, static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
 	}
 
-	bool Multiplayer_Photon::joinRandomRoom(const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomRoom(const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
@@ -1231,7 +1222,7 @@ namespace s3d
 		return m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(maxPlayers));
 	}
 
-	bool Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const HashTable<String, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
@@ -1292,7 +1283,7 @@ namespace s3d
 		{
 			return false;
 		}
-		
+
 		return m_client->opCreateRoom(detail::ToJString(roomName), detail::ToRoomOptions(option));
 	}
 
@@ -1428,7 +1419,7 @@ namespace s3d
 			return options;
 		}
 	}
-	
+
 	static constexpr bool Reliable = true;
 
 	void Multiplayer_Photon::sendEvent(const MultiplayerEvent& eventInfo, const Serializer<MemoryWriter>& writer)
@@ -1443,26 +1434,26 @@ namespace s3d
 
 		switch (eventInfo.receiverOption())
 		{
-		case EventReceiverOption::Others:
+		case ReceiverOption::Others:
 			break;
-		case EventReceiverOption::Others_CacheUntilLeaveRoom:
+		case ReceiverOption::Others_CacheUntilLeaveRoom:
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
 			break;
-		case EventReceiverOption::Others_CacheForever:
+		case ReceiverOption::Others_CacheForever:
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
 			break;
-		case EventReceiverOption::All:
+		case ReceiverOption::All:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			break;
-		case EventReceiverOption::All_CacheUntilLeaveRoom:
+		case ReceiverOption::All_CacheUntilLeaveRoom:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE;
 			break;
-		case EventReceiverOption::All_CacheForever:
+		case ReceiverOption::All_CacheForever:
 			receiver = ExitGames::Lite::ReceiverGroup::ALL;
 			caching = ExitGames::Lite::EventCache::ADD_TO_ROOM_CACHE_GLOBAL;
 			break;
-		case EventReceiverOption::Host:
+		case ReceiverOption::Host:
 			receiver = ExitGames::Lite::ReceiverGroup::MASTER_CLIENT;
 			break;
 		}
@@ -1477,15 +1468,15 @@ namespace s3d
 		const size_t size = blob.size();
 		const uint8* src = static_cast<const uint8*>(static_cast<const void*>(blob.data()));
 
-	# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if not SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		m_client->opRaiseEvent(Reliable, src, static_cast<unsigned int>(size), eventInfo.eventCode(), eventOptions);
-	# else
+# else
 		ExitGames::Common::Hashtable ev;
 		ev.put(L"Type", L"Blob");
 		ev.put(L"values", src, static_cast<int16>(size));
 
 		m_client->opRaiseEvent(Reliable, ev, eventInfo.eventCode(), eventOptions);
-	# endif
+# endif
 	}
 }
 
@@ -2140,11 +2131,11 @@ namespace s3d
 
 		RoomInfo roomInfo
 		{
-			.name		= detail::ToString(room.getName()),
-			.playerCount	= room.getPlayerCount(),
-			.maxPlayers		= room.getMaxPlayers(),
-			.isOpen			= room.getIsOpen(),
-			.properties		= detail::PhotonHashtableToStringHashTable(room.getCustomProperties()),
+			.name = detail::ToString(room.getName()),
+			.playerCount = room.getPlayerCount(),
+			.maxPlayers = room.getMaxPlayers(),
+			.isOpen = room.getIsOpen(),
+			.properties = detail::PhotonHashtableToStringHashTable(room.getCustomProperties()),
 		};
 
 		return roomInfo;
@@ -2187,11 +2178,11 @@ namespace s3d
 
 			LocalPlayer localPlayer
 			{
-				.localID	= player->getNumber(),
-				.userName	= detail::ToString(player->getName()),
-				.userID		= detail::ToString(player->getUserID()),
-				.isHost		= player->getIsMasterClient(),
-				.isActive	= (not player->getIsInactive()),
+				.localID = player->getNumber(),
+				.userName = detail::ToString(player->getName()),
+				.userID = detail::ToString(player->getUserID()),
+				.isHost = player->getIsMasterClient(),
+				.isActive = (not player->getIsInactive()),
 			};
 
 			results << std::move(localPlayer);
@@ -2270,139 +2261,7 @@ namespace s3d
 		m_client->getCurrentlyJoinedRoom().setIsVisible(isVisible);
 	}
 
-	String Multiplayer_Photon::getPlayerProperty(StringView key) const
-	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return {};
-		}
-
-		const auto& player = m_client->getLocalPlayer();
-
-		const auto& properties = player.getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	String Multiplayer_Photon::getPlayerProperty(LocalPlayerID localPlayerID, StringView key) const
-	{
-		if (not m_client)
-		{
-			return {};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return {};
-		}
-
-		const auto& player = m_client->getLocalPlayer();
-
-		const auto& properties = player.getCustomProperties();
-
-		if (auto object = properties.getValue(detail::ToJString(key))) {
-			return detail::ToString(detail::ObjectToJString(*object));
-		}
-
-		return {};
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getPlayerProperties() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& player = m_client->getLocalPlayer();
-
-		return detail::PhotonHashtableToStringHashTable(player.getCustomProperties());
-	}
-
-	HashTable<String, String> Multiplayer_Photon::getPlayerProperties(LocalPlayerID localPlayerID) const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto player = m_client->getCurrentlyJoinedRoom().getPlayerForNumber(localPlayerID);
-
-		if (not player)
-		{
-			return{};
-		}
-
-		return detail::PhotonHashtableToStringHashTable(player->getCustomProperties());
-	}
-
-	void Multiplayer_Photon::setPlayerProperty(StringView key, StringView value)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
-
-	void Multiplayer_Photon::removePlayerProperty(StringView key)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		m_client->getLocalPlayer().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removePlayerProperty(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getLocalPlayer().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	String Multiplayer_Photon::getRoomProperty(StringView key) const
+	String Multiplayer_Photon::getRoomProperty(uint8 key) const
 	{
 		if (not m_client)
 		{
@@ -2416,14 +2275,14 @@ namespace s3d
 
 		const auto& properties = m_client->getCurrentlyJoinedRoom().getCustomProperties();
 
-		if (auto object = properties.getValue(detail::ToJString(key))) {
+		if (auto object = properties.getValue(detail::ToJString(String(1, static_cast<char32>(key))))) {
 			return detail::ToString(detail::ObjectToJString(*object));
 		}
 
 		return {};
 	}
 
-	HashTable<String, String> Multiplayer_Photon::getRoomProperties() const
+	HashTable<uint8, String> Multiplayer_Photon::getRoomProperties() const
 	{
 		if (not m_client)
 		{
@@ -2438,7 +2297,7 @@ namespace s3d
 		return detail::PhotonHashtableToStringHashTable(m_client->getCurrentlyJoinedRoom().getCustomProperties());
 	}
 
-	void Multiplayer_Photon::setRoomProperty(StringView key, StringView value)
+	void Multiplayer_Photon::setRoomProperty(uint8 key, StringView value)
 	{
 		if (not m_client)
 		{
@@ -2450,78 +2309,21 @@ namespace s3d
 			return;
 		}
 
-		m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(key), detail::ToJString(value));
-	}
+		if (key < 0 or 255 < key)
+		{
+			throw Error{ U"[Multiplayer_Photon] KeyCode must be in a range of 0 to 255" };
+		}
 
-	void Multiplayer_Photon::removeRoomProperty(StringView key)
-	{
-		if (not m_client)
+		bool result = m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(String(1, static_cast<char32>(key))), detail::ToJString(value));
+
+		if (not result)
 		{
 			return;
 		}
 
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
+		auto jKeys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
 
-		m_client->getCurrentlyJoinedRoom().removeCustomProperty(detail::ToJString(key));
-	}
-
-	void Multiplayer_Photon::removeRoomProperty(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
-
-		m_client->getCurrentlyJoinedRoom().removeCustomProperties(jKeys.getCArray(), static_cast<uint32>(jKeys.getSize()));
-	}
-
-	Array<String> Multiplayer_Photon::getVisibleRoomPropertyKeys() const
-	{
-		if (not m_client)
-		{
-			return{};
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return{};
-		}
-
-		const auto& keys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
-
-		Array<String> results(keys.getSize());
-
-		for (uint32 i = 0; i < keys.getSize(); ++i)
-		{
-			results[i] = detail::ToString(keys[i]);
-		}
-
-		return results;
-	}
-
-	void Multiplayer_Photon::setVisibleRoomPropertyKeys(const Array<String>& keys)
-	{
-		if (not m_client)
-		{
-			return;
-		}
-
-		if (not m_client->getIsInGameRoom())
-		{
-			return;
-		}
-
-		auto jKeys = detail::ToJStringJVector(keys);
+		jKeys.addElement(detail::ToJString(String(1, static_cast<char32>(key))));
 
 		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
 	}
