@@ -57,7 +57,7 @@ namespace s3d
 		[[nodiscard]]
 		static HashTable<uint8, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
 		{
-			HashTable<uint8, String> result {};
+			HashTable<uint8, String> result{};
 
 			const auto& keys = data.getKeys();
 
@@ -581,8 +581,8 @@ namespace s3d
 
 		void leaveRoomReturn(const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
-			
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::leaveRoomReturn() [ルームから退出した結果を処理する]");
+
 			detail::LogIfError(m_context, errorCode, errorString);
 
 			m_context.leaveRoomReturn(errorCode, detail::ToString(errorString));
@@ -620,9 +620,9 @@ namespace s3d
 
 		void joinOrCreateRoomReturn(const int playerID, [[maybe_unused]] const ExitGames::Common::Hashtable& roomProperties, [[maybe_unused]] const ExitGames::Common::Hashtable& playerProperties, const int errorCode, const ExitGames::Common::JString& errorString) override
 		{
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
-			m_context.logger(U"- [Multiplayer_Photon] playerID: ", playerID);
-			
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::joinOrCreateRoomReturn()");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
+
 			detail::LogIfError(m_context, errorCode, errorString);
 
 			m_context.joinOrCreateRoomReturn(playerID, errorCode, detail::ToString(errorString));
@@ -658,21 +658,6 @@ namespace s3d
 			m_context.debugLog(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
 
 			m_context.onRoomPropertiesChange(changes);
-		}
-
-		void onPlayerPropertiesChange(const int playerID, const ExitGames::Common::Hashtable& changes_) override
-		{
-			auto changes = detail::PhotonHashtableToStringHashTable(changes_);
-
-			if (changes.size() == 0)
-			{
-				return;
-			}
-			
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::onPlayerPropertiesChange()");
-			m_context.logger(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
-
-			m_context.onPlayerPropertiesChange(playerID, changes);
 		}
 
 		void onMasterClientChanged(const int newHostID, const int oldHostID) override
