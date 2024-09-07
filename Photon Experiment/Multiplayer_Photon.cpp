@@ -2297,6 +2297,17 @@ namespace s3d
 		}
 
 		bool result = m_client->getCurrentlyJoinedRoom().addCustomProperty(detail::ToJString(String(1, static_cast<char32>(key))), detail::ToJString(value));
+
+		if (not result)
+		{
+			return;
+		}
+
+		auto jKeys = m_client->getCurrentlyJoinedRoom().getPropsListedInLobby();
+
+		jKeys.addElement(detail::ToJString(String(1, static_cast<char32>(key))));
+
+		m_client->getCurrentlyJoinedRoom().setPropsListedInLobby(jKeys);
 	}
 
 	int32 Multiplayer_Photon::GetSystemTimeMillisec()
