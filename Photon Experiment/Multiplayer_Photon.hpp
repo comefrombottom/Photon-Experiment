@@ -575,7 +575,7 @@ namespace s3d
 		/// @param roomName ルーム名。空の場合はランダムな名前が割り当てられます。
 		/// @param option ルーム作成オプション
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
-		bool createRoom(RoomNameView roomName, const RoomCreateOption& option = {});
+		bool createRoom(RoomNameView roomName, const RoomCreateOption& option);
 
 		/// @brief ルームからの退出を試みます。
 		/// @param willComeBack 退出後に reconnectAndRejoin() で再参加する場合 true
