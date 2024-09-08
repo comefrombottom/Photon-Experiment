@@ -1511,4 +1511,31 @@ namespace s3d
 
 		removeEventCache(static_cast<uint8>(eventCode), targets);
 	}
+
+	void Formatter(FormatData& formatData, ClientState value);
 }
+
+template <>
+struct SIV3D_HIDDEN fmt::formatter<ClientState, char32>
+{
+	std::u32string tag;
+
+	auto parse(basic_format_parse_context<char32>& ctx)
+	{
+		return s3d::detail::GetFormatTag(tag, ctx);
+	}
+
+	template <class FormatContext>
+	auto format(const ClientState& value, FormatContext& ctx)
+	{
+		if (tag.empty())
+		{
+			return format_to(ctx.out(), U"{}", Format(value));
+		}
+		else
+		{
+			const std::u32string format = (U"{:" + tag + U"}");
+			return format_to(ctx.out(), format, Format(value));
+		}
+	}
+};

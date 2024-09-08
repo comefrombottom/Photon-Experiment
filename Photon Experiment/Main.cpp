@@ -493,36 +493,9 @@ void Main()
 			network.debugLog(U"SetIsOpenInCurrentRoom: false");
 			network.setIsVisibleInCurrentRoom(false);
 		}
-
+		
 		{
-			String state{};
-
-			switch (network.getClientState())
-			{
-			case ClientState::Disconnected:
-				state = U"Disconnected";
-				break;
-			case ClientState::ConnectingToLobby:
-				state = U"ConnectingToLobby";
-				break;
-			case ClientState::InLobby:
-				state = U"InLobby";
-				break;
-			case ClientState::JoiningRoom:
-				state = U"JoiningRoom";
-				break;
-			case ClientState::InRoom:
-				state = U"InRoom";
-				break;
-			case ClientState::LeavingRoom:
-				state = U"LeavingRoom";
-				break;
-			case ClientState::Disconnecting:
-				state = U"Disconnecting";
-				break;
-			}
-
-			font(state).drawAt(Rect{ x = initX, y += offsetY, ButtonWidth, 40 }.center());
+			font(network.getClientState()).drawAt(Rect{ x = initX, y += offsetY, ButtonWidth, 40 }.center());
 		}
 
 		if (network.isInLobby())

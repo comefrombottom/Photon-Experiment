@@ -2519,4 +2519,21 @@ namespace s3d
 	{
 		sendEvent(event, Serializer<MemoryWriter> {});
 	}
+
+
+	void s3d::Formatter(FormatData& formatData, ClientState value)
+	{
+		static constexpr StringView strings[] = {
+		U"Disconnected",
+		U"ConnectingToLobby",
+		U"InLobby",
+		U"JoiningRoom",
+		U"InRoom",
+		U"LeavingRoom",
+		U"Disconnecting",
+		};
+
+		formatData.string.append(strings[FromEnum(value)]);
+	}
 }
+
