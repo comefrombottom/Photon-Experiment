@@ -21,7 +21,7 @@
 
 /// @brief 従来のMultiplayer_Photonとの互換性を保つ場合には 1、新しいバージョンのみを使用する場合には 0
 /// @remark Web版を使用する場合には必ず 0 に設定されます。
-# define SIV3D_MULTIPLAYER_PHOTON_LEGACY 1
+# define SIV3D_MULTIPLAYER_PHOTON_LEGACY 0
 
 # if SIV3D_PLATFORM(WEB)
 #	undef SIV3D_MULTIPLAYER_PHOTON_LEGACY

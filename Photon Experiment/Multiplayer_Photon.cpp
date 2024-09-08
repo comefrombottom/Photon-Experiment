@@ -406,10 +406,10 @@ namespace s3d
 			const ExitGames::Common::ValueObject<uint8*> data{ _data };
 			const auto size = data.getSizes()[0];
 
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
-			m_context.logger(U"[Multiplayer_Photon] playerID: ", playerID);
-			m_context.logger(U"[Multiplayer_Photon] eventCode: ", eventCode);
-			m_context.logger(U"[Multiplayer_Photon] data: ", size, U" bytes (serialized)");
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
+			m_context.debugLog(U"[Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] eventCode: ", eventCode);
+			m_context.debugLog(U"[Multiplayer_Photon] data: ", size, U" bytes (serialized)");
 
 			Deserializer<MemoryViewReader> reader{ data.getDataCopy(), size };
 			if (m_context.m_table.contains(eventCode)) {
