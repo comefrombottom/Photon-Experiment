@@ -578,7 +578,7 @@ namespace s3d
 		bool createRoom(RoomNameView roomName, const RoomCreateOption& option = {});
 
 		/// @brief ルームからの退出を試みます。
-		/// @param willComeBack 退出後にreconnectAndRejoin()で再参加する場合 true
+		/// @param willComeBack 退出後に reconnectAndRejoin() で再参加する場合 true
 		void leaveRoom(bool willComeBack = false);
 
 		/// @brief 切断状態から、以前に参加していたルームに再参加を試みます。再参加可能な時間を過ぎている場合は失敗します。
@@ -919,7 +919,10 @@ namespace s3d
 		/// @brief 新たなルームのホストを設定します。
 		/// @param playerID 新たなルームのホストのローカルプレイヤー ID
 		void setHost(LocalPlayerID playerID);
-		
+
+		/// @brief 現在参加しているルームの情報を返します。
+		/// @return 現在のルームの情報
+		[[nodiscard]]
 		RoomInfo getCurrentRoom() const;
 
 		/// @brief 現在参加しているルーム名を返します。
