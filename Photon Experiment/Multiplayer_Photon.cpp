@@ -55,9 +55,9 @@ namespace s3d
 		}
 
 		[[nodiscard]]
-		static HashTable<uint8, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
+		static RoomPropertyTable PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
 		{
-			HashTable<uint8, String> result{};
+			RoomPropertyTable result{};
 
 			const auto& keys = data.getKeys();
 
@@ -72,7 +72,7 @@ namespace s3d
 		}
 
 		[[nodiscard]]
-		static ExitGames::Common::Hashtable ToPhotonHashtable(const HashTable<uint8, String>& table)
+		static ExitGames::Common::Hashtable ToPhotonHashtable(const RoomPropertyTable& table)
 		{
 			ExitGames::Common::Hashtable result;
 
@@ -412,7 +412,7 @@ namespace s3d {
 		return *this;
 	}
 
-	RoomCreateOption& RoomCreateOption::properties(const HashTable<uint8, String>& properties)
+	RoomCreateOption& RoomCreateOption::properties(const RoomPropertyTable& properties)
 	{
 		m_properties = properties;
 		return *this;
@@ -450,7 +450,7 @@ namespace s3d {
 		return m_maxPlayers;
 	}
 
-	const HashTable<uint8, String>& RoomCreateOption::properties() const noexcept
+	const RoomPropertyTable& RoomCreateOption::properties() const noexcept
 	{
 		return m_properties;
 	}
@@ -891,7 +891,7 @@ namespace s3d
 		return m_client->opJoinRandomRoom({}, static_cast<uint8>(expectedMaxPlayers), static_cast<nByte>(matchmakingMode));
 	}
 
-	bool Multiplayer_Photon::joinRandomRoom(const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomRoom(const RoomPropertyTable& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
@@ -921,7 +921,7 @@ namespace s3d
 		return m_client->opJoinRandomOrCreateRoom(detail::ToJString(roomName), {}, {}, static_cast<uint8>(maxPlayers));
 	}
 
-	bool Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
+	bool Multiplayer_Photon::joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption, const RoomPropertyTable& propertyFilter, int32 expectedMaxPlayers, MatchmakingMode matchmakingMode)
 	{
 		if (not m_client)
 		{
@@ -1558,7 +1558,7 @@ namespace s3d
 		return {};
 	}
 
-	HashTable<uint8, String> Multiplayer_Photon::getRoomProperties() const
+	RoomPropertyTable Multiplayer_Photon::getRoomProperties() const
 	{
 		if (not m_client)
 		{

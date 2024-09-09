@@ -52,6 +52,9 @@ namespace s3d
 	/// @brief ルーム内でのローカル ID を表現する型
 	using LocalPlayerID = int32;
 
+	/// @brief ルームプロパティのハッシュテーブル
+	using RoomPropertyTable = HashTable<uint8, String>;
+
 	/// @brief ルーム内のローカルプレイヤーの情報
 	struct LocalPlayer
 	{
@@ -87,7 +90,7 @@ namespace s3d
 		bool isOpen = false;
 
 		// @brief ロビーから参照可能なルームプロパティ
-		HashTable<uint8, String> properties;
+		RoomPropertyTable properties;
 	};
 
 	/// @brief 通信時に用いるプロトコル
@@ -133,7 +136,7 @@ namespace s3d
 		/// @brief ロビーから参照可能なルームに保存されるプロパティを設定します。
 		/// @param properties 追加するプロパティの辞書
 		/// @return 続けてメソッドを呼び出すための *this 参照
-		RoomCreateOption& properties(const HashTable<uint8, String>& properties);
+		RoomCreateOption& properties(const RoomPropertyTable& properties);
 
 		/// @brief ルームから切断されたプレイヤーが再参加できる猶予時間を設定します。
 		/// @param rejoinGracePeriod 再参加できる猶予時間（0msの場合は再参加不可能、noneで無限）
@@ -158,7 +161,7 @@ namespace s3d
 		int32 maxPlayers() const noexcept;
 
 		[[nodiscard]]
-		const HashTable<uint8, String>& properties() const noexcept;
+		const RoomPropertyTable& properties() const noexcept;
 
 		[[nodiscard]]
 		const Optional<Milliseconds>& rejoinGracePeriod() const noexcept;
@@ -176,7 +179,7 @@ namespace s3d
 
 		int32 m_maxPlayers = 0;
 
-		HashTable<uint8, String> m_properties{};
+		RoomPropertyTable m_properties{};
 
 		Optional<Milliseconds> m_rejoinGracePeriod = 0ms;
 
@@ -520,7 +523,7 @@ namespace s3d
 		/// @param matchmakingMode マッチメイキングモード
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
 		/// @remark maxPlayers は 最大 255, 無料の Photon アカウントの場合は 20
-		bool joinRandomRoom(const HashTable<uint8, String>& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomRoom(const RoomPropertyTable& propertyFilter, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 既存のランダムなルームに参加を試み、参加できるルームが無かった場合には新しいルームの作成を試みます。
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
@@ -536,7 +539,7 @@ namespace s3d
 		/// @param expectedMaxPlayers 最大人数が指定されたものと一致するルームにのみ参加を試みます。（0の場合は指定なし）
 		/// @param matchmakingMode マッチメイキングモード
 		/// @return リクエストに成功してコールバックが呼ばれる場合 true、それ以外の場合は false
-		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const HashTable<uint8, String>& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
+		bool joinRandomOrCreateRoom(RoomNameView roomName, const RoomCreateOption& roomCreateOption = {}, const RoomPropertyTable& propertyFilter = {}, int32 expectedMaxPlayers = 0, MatchmakingMode matchmakingMode = MatchmakingMode::FillOldestRoom);
 
 		/// @brief 既存の指定した名前のルームに参加を試み、ルームがまだ作成されてなかった場合には、新しくルームの作成を試みます。
 		/// @param roomName ルーム名。
@@ -721,7 +724,7 @@ namespace s3d
 		String getRoomProperty(uint8 key) const;
 
 		/// @brief 現在のルームに紐づけられたロビーから参照可能なプロパティの一覧を取得します。
-		HashTable<uint8, String> getRoomProperties() const;
+		RoomPropertyTable getRoomProperties() const;
 
 		/// @brief 現在のルームに紐づけられたロビーから参照可能なプロパティを追加します。
 		/// @param key 0 以上 255 以下の整数
@@ -796,7 +799,7 @@ namespace s3d
 		/// @brief ルームのプロパティが変更されたときに呼ばれます。
 		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
 		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
-		virtual void onRoomPropertiesChange(const HashTable<uint8, String>& changes) {}
+		virtual void onRoomPropertiesChange(const RoomPropertyTable& changes) {}
 
 		/// @brief ホストが変更されたときに呼ばれます。
 		/// @param newHostPlayerID 新しいホストのローカルプレイヤー ID
