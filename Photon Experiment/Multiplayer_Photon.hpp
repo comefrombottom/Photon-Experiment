@@ -248,7 +248,7 @@ namespace s3d
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
 		SIV3D_NODISCARD_CXX20
-			explicit MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
+			MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）

@@ -17,17 +17,18 @@ struct MyData
 	}
 };
 
-enum class EventCode
-{
-	IntEvent = 1,
-	StringEvent,
-	StringEvent2,
-	CustomDataTest1,
-	CustomDataTest2,
-	CustomDataTest3,
-	CustomDataTest4,
-	FallbackTest,
-};
+namespace EventCode {
+	enum {
+		IntEvent = 1,
+		StringEvent,
+		StringEvent2,
+		CustomDataTest1,
+		CustomDataTest2,
+		CustomDataTest3,
+		CustomDataTest4,
+		FallbackTest,
+	};
+}
 
 class MyNetwork : public Multiplayer_Photon
 {
@@ -268,8 +269,8 @@ void Main()
 		if (SimpleGUI::Button(U"sendEventTest 1, 2, 3, 4", { x = initX, y += offsetY }, ButtonWidth))
 		{
 			Array<double> arr{ 0.5, 1.0, 1.5 };
-			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest1));
-			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest2), arr);
+			network.sendEvent({ EventCode::CustomDataTest1 });
+			network.sendEvent({ EventCode::CustomDataTest2 }, arr);
 			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest3), arr);
 			network.sendEvent(MultiplayerEvent(EventCode::CustomDataTest4), arr);
 		}
