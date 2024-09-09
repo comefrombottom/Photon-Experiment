@@ -57,7 +57,7 @@ namespace s3d
 		[[nodiscard]]
 		static HashTable<uint8, String> PhotonHashtableToStringHashTable(const ExitGames::Common::Hashtable& data)
 		{
-			HashTable<uint8, String> result {};
+			HashTable<uint8, String> result{};
 
 			const auto& keys = data.getKeys();
 
@@ -406,10 +406,10 @@ namespace s3d
 			const ExitGames::Common::ValueObject<uint8*> data{ _data };
 			const auto size = data.getSizes()[0];
 
-			m_context.logger(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
-			m_context.logger(U"[Multiplayer_Photon] playerID: ", playerID);
-			m_context.logger(U"[Multiplayer_Photon] eventCode: ", eventCode);
-			m_context.logger(U"[Multiplayer_Photon] data: ", size, U" bytes (serialized)");
+			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
+			m_context.debugLog(U"[Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"[Multiplayer_Photon] eventCode: ", eventCode);
+			m_context.debugLog(U"[Multiplayer_Photon] data: ", size, U" bytes (serialized)");
 
 			Deserializer<MemoryViewReader> reader{ data.getDataCopy(), size };
 			if (m_context.m_table.contains(eventCode)) {
@@ -785,6 +785,39 @@ namespace s3d {
 	}
 
 	// MultiplayerEvent
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_receiverOption(receiverOption)
+		, m_priorityIndex(priorityIndex)
+	{
+		if (eventCode < 1 or 199 < eventCode)
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+	}
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_targetList(targetList)
+		, m_priorityIndex(priorityIndex)
+	{
+		if (eventCode < 1 or 199 < eventCode)
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+	}
+
+	MultiplayerEvent::MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex)
+		: m_eventCode(static_cast<uint8>(eventCode))
+		, m_targetGroup(targetGroup.value())
+		, m_priorityIndex(priorityIndex)
+	{
+		if (eventCode < 1 or 199 < eventCode)
+		{
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
+		}
+	}
 
 	uint8 MultiplayerEvent::eventCode() const noexcept
 	{
@@ -1881,7 +1914,6 @@ namespace s3d
 /// Multiplayer_Photon
 namespace s3d
 {
-	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode)
 	{
 		if (not m_client)
@@ -1897,7 +1929,6 @@ namespace s3d
 		m_client->opRaiseEvent(Reliable, ExitGames::Common::Hashtable(), eventCode, ExitGames::LoadBalancing::RaiseEventOptions().setEventCaching(ExitGames::Lite::EventCache::REMOVE_FROM_ROOM_CACHE));
 	}
 
-	template<>
 	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets)
 	{
 		if (not m_client)
@@ -2519,4 +2550,21 @@ namespace s3d
 	{
 		sendEvent(event, Serializer<MemoryWriter> {});
 	}
+
+
+	void s3d::Formatter(FormatData& formatData, ClientState value)
+	{
+		static constexpr StringView strings[] = {
+			U"Disconnected",
+			U"ConnectingToLobby",
+			U"InLobby",
+			U"JoiningRoom",
+			U"InRoom",
+			U"LeavingRoom",
+			U"Disconnecting",
+		};
+
+		formatData.string.append(strings[FromEnum(value)]);
+	}
 }
+
