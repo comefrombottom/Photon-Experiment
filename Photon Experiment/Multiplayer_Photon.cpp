@@ -1444,9 +1444,9 @@ namespace s3d
 			return{};
 		}
 
-		Array<LocalPlayer> results;
-
 		const auto& players = m_client->getCurrentlyJoinedRoom().getPlayers();
+
+		Array<LocalPlayer> results(players.getSize());
 
 		for (uint32 i = 0; i < players.getSize(); ++i)
 		{
@@ -1461,7 +1461,31 @@ namespace s3d
 				.isActive = (not player->getIsInactive()),
 			};
 
-			results << std::move(localPlayer);
+			results[i] = std::move(localPlayer);
+		}
+
+		return results;
+	}
+
+	Array<LocalPlayerID> Multiplayer_Photon::getLocalPlayerIDs() const
+	{
+		if (not m_client)
+		{
+			return{};
+		}
+
+		if (not m_client->getIsInGameRoom())
+		{
+			return{};
+		}
+
+		const auto& players = m_client->getCurrentlyJoinedRoom().getPlayers();
+
+		Array<LocalPlayerID> results(players.getSize());
+
+		for (uint32 i = 0; i < players.getSize(); ++i)
+		{
+			results[i] = players[i]->getNumber();
 		}
 
 		return results;
