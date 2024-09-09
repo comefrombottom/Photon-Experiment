@@ -104,13 +104,13 @@ namespace s3d
 	enum class ConnectionProtocol : uint8
 	{
 		Default = 0,
-	# if not SIV3D_PLATFORM(WEB)
+# if not SIV3D_PLATFORM(WEB)
 		UDP = 0,
 		TCP = 1,
-	# else
+# else
 		Ws = 0,
 		Wss = 1,
-	# endif
+# endif
 	};
 
 	class RoomCreateOption
@@ -251,35 +251,29 @@ namespace s3d
 	class MultiplayerEvent
 	{
 	public:
-		SIV3D_NODISCARD_CXX20
-		MultiplayerEvent() = default;
-
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
 		/// @param receiverOption 送信先のターゲット指定オプション
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
-		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-		MultiplayerEvent(EventCode eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
+			explicit MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
 		/// @param targetList 送信先のプレイヤーのローカル ID のリスト
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
-		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-		MultiplayerEvent(EventCode eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
+			MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
 		/// @param targetGroup 送信先のイベントターゲットグループ（1以上255以下の整数）
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
-		template<class EventCode>
 		SIV3D_NODISCARD_CXX20
-		MultiplayerEvent(EventCode eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
+			MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
 
 		[[nodiscard]]
 		uint8 eventCode() const noexcept;
@@ -337,7 +331,7 @@ namespace s3d
 
 		/// @brief デフォルトコンストラクタ。このコンストラクタを使用する場合は後で init を呼び出してください。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon();
+			Multiplayer_Photon();
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -346,7 +340,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -355,7 +349,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+			Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -364,7 +358,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -373,7 +367,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-		Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+			Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief デストラクタ
 		virtual ~Multiplayer_Photon();
@@ -384,14 +378,14 @@ namespace s3d
 		/// @param verbose デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		void init(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
-		
+
 		/// @brief マルチプレイヤー用クラスを初期化します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
 		/// @param photonAppVersion アプリケーションのバージョン
 		/// @param verbose デバッグ用の Print 出力をする場合 Verbose::Yes, それ以外の場合は Verbose::No
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		void init(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
-		
+
 		/// @brief マルチプレイヤー用クラスを初期化します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
 		/// @param photonAppVersion アプリケーションのバージョン
@@ -409,7 +403,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		void init(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger = {}, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
-		
+
 		/// @brief Photon サーバへの接続を試みます。
 		/// @param userName ユーザ名
 		/// @param region 接続するサーバのリージョン。unspecified の場合は利用可能なサーバのうち最速のものが選択されます。
@@ -458,7 +452,7 @@ namespace s3d
 		/// @return 存在するルームの名前の一覧
 		[[nodiscard]]
 		Array<RoomName> getRoomNameList() const;
-		
+
 		/// @brief サーバのタイムスタンプ（ミリ秒）を返します。
 		/// @return サーバのタイムスタンプ（ミリ秒）
 		[[nodiscard]]
@@ -485,7 +479,7 @@ namespace s3d
 		/// @param intervalMillisec pingの更新頻度（ミリ秒）
 		void setPingIntervalMillisec(int32 intervalMillisec);
 
-	# if not SIV3D_PLATFORM(WEB)
+# if not SIV3D_PLATFORM(WEB)
 		/// @brief 受信したデータのサイズ（バイト）を返します。
 		/// @return 受信したデータのサイズ（バイト）
 		[[nodiscard]]
@@ -495,7 +489,7 @@ namespace s3d
 		/// @return 送信したデータのサイズ（バイト）
 		[[nodiscard]]
 		int32 getBytesOut() const;
-	# else
+# else
 		/// @brief 受信したデータのサイズ（バイト）を返します。この関数は Web 版では利用できません。
 		/// @return 受信したデータのサイズ（バイト）
 		[[nodiscard]]
@@ -505,7 +499,7 @@ namespace s3d
 		/// @return 送信したデータのサイズ（バイト）
 		[[nodiscard]]
 		int32 getBytesOut() const = delete;
-	# endif
+# endif
 
 		/// @brief ルームの数を返します。
 		/// @return ルームの数
@@ -607,20 +601,20 @@ namespace s3d
 
 		/// @brief 全てのイベントターゲットグループから退出します。
 		void leaveAllEventTargetGroups();
-		
+
 		/// @brief ルームにイベントを送信します。
 		/// @param event イベントの送信オプション
 		/// @param args 送信するデータ
 		/// @remark Argsにはシリアライズ可能かつデフォルト構築可能な型のみが指定できます。
 		template<class... Args>
 		void sendEvent(const MultiplayerEvent& event, Args... args);
-		
+
 		/// @brief ルームにイベントを送信します。
 		/// @param event イベントの送信オプション
 		/// @param writer 送信するデータを書き込んだシリアライザ
 		void sendEvent(const MultiplayerEvent& event, const Serializer<MemoryWriter>& writer);
 
-	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		/// @brief ルームにイベントを送信します。
 		/// @param eventCode イベントコード
 		/// @param value 送信するデータ
@@ -849,19 +843,17 @@ namespace s3d
 		/// @param targets 送信先のプレイヤーのローカル ID, unspecified の場合は自分以外の全員
 		/// @remark ユーザ定義型を送信する際に利用します。
 		void sendEvent(uint8 eventCode, const Serializer<MemoryWriter>& writer, const Optional<Array<LocalPlayerID>>& targets = unspecified);
-	# endif
+# endif
 
 		/// @brief キャッシュされたイベントを削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
-		template<class EventCode>
-		void removeEventCache(EventCode eventCode = 0);
+		void removeEventCache(uint8 eventCode = 0);
 
 		/// @brief キャッシュされたイベントを削除します。targetsで指定したプレイヤーに紐づくイベントのみ削除します。
 		/// @param eventCode 削除するイベントコード, 0 の場合は全てのイベントを削除
 		/// @param targets 対象のプレイヤーのローカル ID
 		/// @remark プレイヤーに紐づくイベントとは、ReceiverOption::○○○_CacheUntilLeaveRoomによってキャッシュされたイベントのことです。
-		template<class EventCode>
-		void removeEventCache(EventCode eventCode, const Array<LocalPlayerID>& targets);
+		void removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
 
 		/// @brief 自身のプレイヤー情報を返します。
 		LocalPlayer getLocalPlayer() const;
@@ -1037,7 +1029,7 @@ namespace s3d
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
 		virtual void joinRandomOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
-		
+
 		/// @brief ロビー内のルームが更新されたときに呼ばれます。
 		virtual void onRoomListUpdate() {}
 
@@ -1058,7 +1050,7 @@ namespace s3d
 		/// @remark ユーザ定義型を受信する際に利用します。
 		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, Deserializer<MemoryViewReader>& reader) {}
 
-	# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
+# if SIV3D_MULTIPLAYER_PHOTON_LEGACY
 		/// @brief ルームのイベントを受信した際に呼ばれます。
 		/// @param playerID 送信者のローカルプレイヤー ID
 		/// @param eventCode イベントコード
@@ -1268,7 +1260,7 @@ namespace s3d
 		/// @param eventCode イベントコード
 		/// @param data 受信したデータ
 		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, const RoundRect& data);
-	# endif
+# endif
 
 		/// @brief クライアントのシステムのタイムスタンプ（ミリ秒）を返します。
 		/// @return クライアントのシステムのタイムスタンプ（ミリ秒）
@@ -1281,8 +1273,8 @@ namespace s3d
 		template<class T, class... Args>
 		using EventCallbackType = void (T::*)(LocalPlayerID, Args...);
 
-		template<class EventCode, class T, class... Args>
-		void RegisterEventCallback(EventCode eventCode, EventCallbackType<T, Args...> callback);
+		template<class T, class... Args>
+		void RegisterEventCallback(uint8 eventCode, EventCallbackType<T, Args...> callback);
 
 		template<class... Args>
 		void debugLog(Args&&... args) const
@@ -1303,7 +1295,7 @@ namespace s3d
 
 	private:
 
-	# if not SIV3D_PLATFORM(WEB)
+# if not SIV3D_PLATFORM(WEB)
 		std::unique_ptr<ExitGames::LoadBalancing::Listener> m_listener;
 
 		std::unique_ptr<ExitGames::LoadBalancing::Client> m_client;
@@ -1311,9 +1303,9 @@ namespace s3d
 		ConnectionProtocol m_connectionProtocol = ConnectionProtocol::UDP;
 
 		String m_lastJoinedRoomName;
-	# else
+# else
 		std::unique_ptr<PhotonDetail> m_detail;
-	# endif
+# endif
 
 		String m_secretPhotonAppID;
 
@@ -1326,6 +1318,8 @@ namespace s3d
 		std::function<void(StringView)> m_logger;
 	};
 
+	void Formatter(FormatData& formatData, ClientState value);
+
 	namespace detail
 	{
 		template<class T, class... Args>
@@ -1336,12 +1330,12 @@ namespace s3d
 				std::tuple<std::remove_cvref_t<Args>...> args{};
 				impl(static_cast<T&>(client), callback, player, reader, args, std::make_index_sequence<std::tuple_size_v<std::tuple<Args...>>>());
 			}
-	
+
 			static void impl(T& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<> args, std::integer_sequence<size_t>)
 			{
 				(client.*reinterpret_cast<Multiplayer_Photon::EventCallbackType<T, Args...>>(callback))(player);
 			}
-	
+
 			template<std::size_t... I>
 			static void impl(T& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<std::remove_cvref_t<Args>...> args, std::integer_sequence<size_t, I...>)
 			{
@@ -1360,159 +1354,16 @@ namespace s3d
 	template<>
 	void Multiplayer_Photon::sendEvent<>(const MultiplayerEvent& event);
 
-	template<class EventCode, class T, class ...Args>
-	void Multiplayer_Photon::RegisterEventCallback(EventCode eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
+	template<class T, class ...Args>
+	void Multiplayer_Photon::RegisterEventCallback(uint8 eventCode, Multiplayer_Photon::EventCallbackType<T, Args...> callback)
 	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-
-		if constexpr (std::is_enum_v<EventCode>)
+		if (not InRange(static_cast<int>(eventCode), 1, 199))
 		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
+			throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
 		}
 
 		m_table[static_cast<uint8>(eventCode)] = detail::CustomEventReceiver(reinterpret_cast<detail::TypeErasedCallback>(callback), &detail::EventWrapperImpl<T, Args...>::wrapper);
 	}
-
-	template<class EventCode>
-	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, ReceiverOption receiverOption, uint8 priorityIndex)
-		: m_eventCode(static_cast<uint8>(eventCode))
-		, m_receiverOption(receiverOption)
-		, m_priorityIndex(priorityIndex)
-	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-
-		if constexpr (std::is_enum_v<EventCode>)
-		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-	}
-
-	template<class EventCode>
-	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex)
-		: m_eventCode(static_cast<uint8>(eventCode))
-		, m_targetList(targetList)
-		, m_priorityIndex(priorityIndex)
-	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-
-		if constexpr (std::is_enum_v<EventCode>)
-		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-	}
-
-	template<class EventCode>
-	MultiplayerEvent::MultiplayerEvent(EventCode eventCode, TargetGroup targetGroup, uint8 priorityIndex)
-		: m_eventCode(static_cast<uint8>(eventCode))
-		, m_targetGroup(targetGroup.value())
-		, m_priorityIndex(priorityIndex)
-	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-		
-		if constexpr (std::is_enum_v<EventCode>)
-		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-	}
-
-	template<>
-	void Multiplayer_Photon::removeEventCache(uint8 eventCode);
-
-	template<class EventCode>
-	void Multiplayer_Photon::removeEventCache(EventCode eventCode)
-	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-		
-		if constexpr (std::is_enum_v<EventCode>)
-		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		removeEventCache(static_cast<uint8>(eventCode));
-	}
-
-	template<>
-	void Multiplayer_Photon::removeEventCache(uint8 eventCode, const Array<LocalPlayerID>& targets);
-
-	template<class EventCode>
-	void Multiplayer_Photon::removeEventCache(EventCode eventCode, const Array<LocalPlayerID>& targets)
-	{
-		static_assert(std::is_integral_v<EventCode> or std::is_enum_v<EventCode>, "[Multiplayer_Photon] EventCode must be integral or enum");
-		
-		if constexpr (std::is_enum_v<EventCode>)
-		{
-			auto code = static_cast<std::underlying_type_t<EventCode>>(eventCode);
-			if (code < 1 or 199 < code)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-		else
-		{
-			if (eventCode < 1 or 199 < eventCode)
-			{
-				throw Error{ U"[Multiplayer_Photon] EventCode must be in a range of 1 to 199" };
-			}
-		}
-
-		removeEventCache(static_cast<uint8>(eventCode), targets);
-	}
-
-	void Formatter(FormatData& formatData, ClientState value);
 }
 
 template <>
