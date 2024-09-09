@@ -251,7 +251,7 @@ namespace s3d
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
+		MultiplayerEvent(uint8 eventCode, ReceiverOption receiverOption = ReceiverOption::Others, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
@@ -259,7 +259,7 @@ namespace s3d
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
+		MultiplayerEvent(uint8 eventCode, Array<LocalPlayerID> targetList, uint8 priorityIndex = 0);
 
 		/// @brief 送信するイベントのオプション
 		/// @param eventCode イベントコード （1～199）
@@ -267,7 +267,7 @@ namespace s3d
 		/// @param priorityIndex プライオリティインデックス　0に近いほど優先的に処理される
 		/// @remark Web 版では priorityIndex は無視されます。
 		SIV3D_NODISCARD_CXX20
-			MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
+		MultiplayerEvent(uint8 eventCode, TargetGroup targetGroup, uint8 priorityIndex = 0);
 
 		[[nodiscard]]
 		uint8 eventCode() const noexcept;
@@ -325,7 +325,7 @@ namespace s3d
 
 		/// @brief デフォルトコンストラクタ。このコンストラクタを使用する場合は後で init を呼び出してください。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon();
+		Multiplayer_Photon();
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -334,7 +334,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+		Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -343,7 +343,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+		Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -352,7 +352,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+		Multiplayer_Photon(std::string_view secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief マルチプレイヤー用クラスを作成します。
 		/// @param secretPhotonAppID Photon アプリケーション ID
@@ -361,7 +361,7 @@ namespace s3d
 		/// @param protocol 通信に用いるプロトコル
 		/// @remark アプリケーションバージョンが異なるプレイヤーとの通信はできません。
 		SIV3D_NODISCARD_CXX20
-			Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
+		Multiplayer_Photon(StringView secretPhotonAppID, StringView photonAppVersion, const std::function<void(StringView)>& logger, const Verbose verbose = Verbose::Yes, ConnectionProtocol protocol = ConnectionProtocol::Default);
 
 		/// @brief デストラクタ
 		virtual ~Multiplayer_Photon();
@@ -464,12 +464,12 @@ namespace s3d
 		[[nodiscard]]
 		int32 getPingMillisec() const;
 
-		/// @brief getPingMillisec() で取得されるpingの更新頻度を取得します。
+		/// @brief getPingMillisec() で取得される ping の更新頻度を取得します。
 		/// @return pingの更新頻度（ミリ秒）
 		[[nodiscard]]
 		int32 getPingIntervalMillisec() const;
 
-		/// @brief getPingMillisec() で取得されるpingの更新頻度を設定します。
+		/// @brief getPingMillisec() で取得される ping の更新頻度を設定します。
 		/// @param intervalMillisec pingの更新頻度（ミリ秒）
 		void setPingIntervalMillisec(int32 intervalMillisec);
 
