@@ -246,9 +246,9 @@ namespace s3d
 			const auto size = data.getSizes()[0];
 
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::customEventAction(Deserializer<MemoryReader>)");
-			m_context.debugLog(U"[Multiplayer_Photon] playerID: ", playerID);
-			m_context.debugLog(U"[Multiplayer_Photon] eventCode: ", eventCode);
-			m_context.debugLog(U"[Multiplayer_Photon] data: ", size, U" bytes (serialized)");
+			m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
+			m_context.debugLog(U"- [Multiplayer_Photon] eventCode: ", eventCode);
+			m_context.debugLog(U"- [Multiplayer_Photon] data: ", size, U" bytes (serialized)");
 
 			Deserializer<MemoryViewReader> reader{ data.getDataCopy(), size };
 
@@ -265,7 +265,7 @@ namespace s3d
 		void connectReturn(const int errorCode, const ExitGames::Common::JString& errorString, const ExitGames::Common::JString& region, const ExitGames::Common::JString& cluster) override
 		{
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::connectReturn()");
-			m_context.debugLog(U"[Multiplayer_Photon] region: ", detail::ToString(region));
+			m_context.debugLog(U"- [Multiplayer_Photon] region: ", detail::ToString(region));
 			m_context.debugLog(U"- [Multiplayer_Photon] cluster: ", detail::ToString(cluster));
 
 			detail::LogIfError(m_context, errorCode, detail::ToString(errorString));
@@ -357,7 +357,7 @@ namespace s3d
 			}
 
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onRoomPropertiesChange()");
-			m_context.debugLog(U"[Multiplayer_Photon] - changes: {}"_fmt(Format(changes)));
+			m_context.debugLog(U"- [Multiplayer_Photon] changes: {}"_fmt(Format(changes)));
 
 			m_context.onRoomPropertiesChange(changes);
 		}
@@ -365,8 +365,8 @@ namespace s3d
 		void onMasterClientChanged(const int newHostID, const int oldHostID) override
 		{
 			m_context.debugLog(U"[Multiplayer_Photon] Multiplayer_Photon::onHostChange()");
-			m_context.debugLog(U"[Multiplayer_Photon] - netHostID: {}"_fmt(newHostID));
-			m_context.debugLog(U"[Multiplayer_Photon] - oldHostID: {}"_fmt(oldHostID));
+			m_context.debugLog(U"- [Multiplayer_Photon] netHostID: {}"_fmt(newHostID));
+			m_context.debugLog(U"- [Multiplayer_Photon] oldHostID: {}"_fmt(oldHostID));
 
 			m_context.onHostChange(newHostID, oldHostID);
 		}
