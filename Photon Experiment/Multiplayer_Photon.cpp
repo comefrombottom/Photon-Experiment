@@ -679,7 +679,7 @@ namespace s3d
 		m_client->service();
 	}
 
-	bool Multiplayer_Photon::isActive() const noexcept
+	bool Multiplayer_Photon::isActive() const
 	{
 		return getClientState() != ClientState::Disconnected;
 	}
@@ -730,6 +730,16 @@ namespace s3d
 		}
 	}
 
+	bool Multiplayer_Photon::isDisconnected() const
+	{
+		return getClientState() == ClientState::Disconnected;
+	}
+
+	bool Multiplayer_Photon::isConnectingToLobby() const
+	{
+		return getClientState() == ClientState::ConnectingToLobby;
+	}
+
 	bool Multiplayer_Photon::isInLobby() const
 	{
 		if (not m_client)
@@ -738,6 +748,11 @@ namespace s3d
 		}
 
 		return m_client->getIsInLobby();
+	}
+
+	bool Multiplayer_Photon::isJoiningRoom() const
+	{
+		return getClientState() == ClientState::JoiningRoom;
 	}
 
 	bool Multiplayer_Photon::isInLobbyOrInRoom() const
@@ -758,6 +773,16 @@ namespace s3d
 		}
 
 		return m_client->getIsInGameRoom();
+	}
+
+	bool Multiplayer_Photon::isLeavingRoom() const
+	{
+		return getClientState() == ClientState::LeavingRoom;
+	}
+
+	bool Multiplayer_Photon::isDisconnecting() const
+	{
+		return getClientState() == ClientState::Disconnecting;
 	}
 
 	Array<RoomInfo> Multiplayer_Photon::getRoomList() const

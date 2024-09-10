@@ -412,30 +412,55 @@ namespace s3d
 		/// @remark 6 秒間以上この関数を呼ばないと自動的に切断されます。
 		void update();
 
-		/// @brief update() を呼ぶ必要がある状態であるかを返します。
+		/// @brief update() を呼ぶ必要がある状態であるかを返します。not isDisconnected() と同じです。
 		/// @return  update() を呼ぶ必要がある状態である場合 true, それ以外の場合は false
 		[[nodiscard]]
-		bool isActive() const noexcept;
+		bool isActive() const;
 
-		/// @brief ネットワークの状態を返します。
-		/// @return 現在のネットワークの状態
+		/// @brief クライアントの状態を返します。
+		/// @return 現在のクライアントの状態
 		[[nodiscard]]
 		ClientState getClientState() const;
+
+		/// @brief サーバーから切断されているかを返します。
+		/// @return サーバーから切断されている場合 true, それ以外の場合は false
+		[[nodiscard]]
+		bool isDisconnected() const;
+
+		/// @brief ロビーに接続中かを返します。
+		/// @return ロビーに接続中の場合 true, それ以外の場合は false
+		[[nodiscard]]
+		bool isConnectingToLobby() const;
 
 		/// @brief 自分がロビーにいるかを返します。
 		/// @return ロビーにいる場合 true, それ以外の場合は false
 		[[nodiscard]]
 		bool isInLobby() const;
 
-		/// @brief 自分がロビーまたはルームにいるかを返します。
-		/// @return ロビーまたはルームいる場合 true, それ以外の場合は false
+		/// @brief ルームに参加中かを返します。
+		/// @return ルームに参加中の場合 true, それ以外の場合は false
 		[[nodiscard]]
-		bool isInLobbyOrInRoom() const;
+		bool isJoiningRoom() const;
 
 		/// @brief 自分がルームに参加しているかを返します。
 		/// @return ルームに参加している場合 true, それ以外の場合は false
 		[[nodiscard]]
 		bool isInRoom() const;
+
+		/// @brief ルームから退出中かを返します。
+		/// @return ルームから退出中の場合 true, それ以外の場合は false
+		[[nodiscard]]
+		bool isLeavingRoom() const;
+
+		/// @brief サーバーから切断中かを返します。
+		/// @return サーバーから切断中の場合 true, それ以外の場合は false
+		[[nodiscard]]
+		bool isDisconnecting() const;
+
+		/// @brief 自分がロビーまたはルームにいるかを返します。
+		/// @return ロビーまたはルームいる場合 true, それ以外の場合は false
+		[[nodiscard]]
+		bool isInLobbyOrInRoom() const;
 
 		/// @brief 存在するルームの一覧を返します。
 		/// @return 存在するルームの一覧

@@ -136,6 +136,12 @@ void Main()
 	{
 		network.update();
 
+		assert(network.isInLobby() == (network.getClientState() == ClientState::InLobby));
+		assert(network.isInRoom() == (network.getClientState() == ClientState::InRoom));
+		assert(network.isInLobbyOrInRoom() == (network.getClientState() == ClientState::InRoom or network.getClientState() == ClientState::InLobby));
+
+
+
 		int x = initX;
 		int y = initY;
 
