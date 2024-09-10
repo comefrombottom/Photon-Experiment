@@ -39,13 +39,46 @@ namespace s3d
 		[[nodiscard]]
 		static String ToString(const ExitGames::Common::JString& s)
 		{
-			return Unicode::FromWstring(std::wstring_view{ s.cstr(), s.length() });
+		// https://github.com/Siv3D/OpenSiv3D/issues/1236#issuecomment-2335148121
+			auto t = Unicode::FromWstring(std::wstring_view{ s.cstr(), s.length() });
+# if SIV3D_PLATFORM(WINDOWS)
+
+			for (auto& c : t)
+			{
+				// 置換された文字を元に戻す
+				if ((c & 0xffff0000) == 0x00100000)
+				{
+					c &= 0x0000ffff;
+				}
+			}
+
+# endif
+			return t;
 		}
 
 		[[nodiscard]]
 		static ExitGames::Common::JString ToJString(const StringView s)
 		{
-			return ExitGames::Common::JString{ Unicode::ToWstring(s).c_str() };
+		// https://github.com/Siv3D/OpenSiv3D/issues/1236#issuecomment-2335148121
+# if SIV3D_PLATFORM(WINDOWS)
+
+			String t{ s };
+			for (auto& c : t)
+			{
+				// 問題が発生する文字を置換する
+				if ((0x0100 <= c) && (c <= 0xffff))
+				{
+					c |= 0x00100000;
+				}
+			}
+			const auto ws = Unicode::ToWstring(t);
+
+# else
+
+			const auto ws = Unicode::ToWstring(s);
+
+# endif
+			return ExitGames::Common::JString{ ws.c_str(), static_cast<unsigned int>(ws.length()) };
 		}
 
 		[[nodiscard]]
