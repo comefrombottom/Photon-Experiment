@@ -764,7 +764,7 @@ namespace s3d
 
 		/// @brief サーバーとの接続が切断されたときに呼ばれます。
 		/// @param errorCode エラーコード
-		virtual void connectionErrorReturn(int32 errorCode) {}
+		virtual void connectionErrorReturn([[maybe_unused]] int32 errorCode) {}
 
 		/// @brief サーバに接続を試みた結果が通知されるときに呼ばれます。
 		/// @param errorCode エラーコード。0 の場合には成功
@@ -772,7 +772,7 @@ namespace s3d
 		/// @param region 接続した地域
 		/// @param cluster クラスター
 		/// @remark Web 版では region は常に connect 時に設定された文字列であり、cluster は常に空文字列です。
-		virtual void connectReturn(int32 errorCode, const String& errorString, const String& region, const String& cluster) {}
+		virtual void connectReturn([[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString, [[maybe_unused]] const String& region, [[maybe_unused]] const String& cluster) {}
 
 		/// @brief サーバから切断したときに呼ばれます。
 		virtual void disconnectReturn() {}
@@ -780,48 +780,48 @@ namespace s3d
 		/// @brief 自身がルームから退出したときに呼ばれます。
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
-		virtual void leaveRoomReturn(int32 errorCode, const String& errorString) {}
+		virtual void leaveRoomReturn([[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief ランダムなルームへの参加を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID ルーム内のローカルプレイヤー ID
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
-		virtual void joinRandomRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
+		virtual void joinRandomRoomReturn([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief ルームへの参加を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID ルーム内のローカルプレイヤー ID
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
-		virtual void joinRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
+		virtual void joinRoomReturn([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief 誰か（自分を含む）が現在のルームに参加したときに呼ばれます。
 		/// @param newPlayer 参加者の情報
 		/// @param playerIDs ルーム内のプレイヤー全員のローカルプレイヤー ID
 		/// @param isSelf 参加したのが自分である場合 true, それ以外の場合は false
-		virtual void joinRoomEventAction(const LocalPlayer& newPlayer, const Array<LocalPlayerID>& playerIDs, bool isSelf) {}
+		virtual void joinRoomEventAction([[maybe_unused]] const LocalPlayer& newPlayer, [[maybe_unused]] const Array<LocalPlayerID>& playerIDs, [[maybe_unused]] bool isSelf) {}
 
 		/// @brief 現在参加しているルームから誰かが退出したときに呼ばれます。
 		/// @param playerID 退出者のローカルプレイヤー ID
 		/// @param isInactive 退出者が再参加できる場合 true, それ以外の場合は false
-		virtual void leaveRoomEventAction(LocalPlayerID playerID, bool isInactive) {}
+		virtual void leaveRoomEventAction([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] bool isInactive) {}
 
 		/// @brief ルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
-		virtual void createRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
+		virtual void createRoomReturn([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief ルームへの参加またはルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
 		/// @param errorCode エラーコード
 		/// @param errorString エラー文字列
-		virtual void joinOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
+		virtual void joinOrCreateRoomReturn([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief ランダムなルームへの参加またはルームの作成を試みた結果が通知されるときに呼ばれます。
 		/// @param playerID 自身のローカルプレイヤー ID
 		/// @param errorCode エラーコード。0 の場合には成功
 		/// @param errorString エラー文字列
-		virtual void joinRandomOrCreateRoomReturn(LocalPlayerID playerID, int32 errorCode, const String& errorString) {}
+		virtual void joinRandomOrCreateRoomReturn([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] int32 errorCode, [[maybe_unused]] const String& errorString) {}
 
 		/// @brief ロビー内のルームが更新されたときに呼ばれます。
 		virtual void onRoomListUpdate() {}
@@ -829,19 +829,19 @@ namespace s3d
 		/// @brief ルームのプロパティが変更されたときに呼ばれます。
 		/// @param changes 変更されたプロパティのキーと値（Web 版ではこのパラメータは利用できません）
 		/// @remark Web 版では、この関数はルームのプロパティが変更された時の他にも呼ばれることがあります。
-		virtual void onRoomPropertiesChange(const RoomPropertyTable& changes) {}
+		virtual void onRoomPropertiesChange([[maybe_unused]] const RoomPropertyTable& changes) {}
 
 		/// @brief ホストが変更されたときに呼ばれます。
 		/// @param newHostPlayerID 新しいホストのローカルプレイヤー ID
 		/// @param oldHostPlayerID 古いホストのローカルプレイヤー ID
-		virtual void onHostChange(LocalPlayerID newHostPlayerID, LocalPlayerID oldHostPlayerID) {}
+		virtual void onHostChange([[maybe_unused]] LocalPlayerID newHostPlayerID, [[maybe_unused]] LocalPlayerID oldHostPlayerID) {}
 
 		/// @brief ルームのイベントを受信した際に呼ばれます。
 		/// @param playerID 送信者のローカルプレイヤー ID
 		/// @param eventCode イベントコード
 		/// @param data 受信したデータ
 		/// @remark ユーザ定義型を受信する際に利用します。
-		virtual void customEventAction(LocalPlayerID playerID, uint8 eventCode, Deserializer<MemoryViewReader>& reader) {}
+		virtual void customEventAction([[maybe_unused]] LocalPlayerID playerID, [[maybe_unused]] uint8 eventCode, [[maybe_unused]] Deserializer<MemoryViewReader>& reader) {}
 
 		/// @brief クライアントのシステムのタイムスタンプ（ミリ秒）を返します。
 		/// @return クライアントのシステムのタイムスタンプ（ミリ秒）
@@ -912,7 +912,7 @@ namespace s3d
 				impl(static_cast<T&>(client), callback, player, reader, args, std::make_index_sequence<std::tuple_size_v<std::tuple<Args...>>>());
 			}
 
-			static void impl(T& client, TypeErasedCallback callback, LocalPlayerID player, Deserializer<MemoryViewReader>& reader, std::tuple<> args, std::integer_sequence<size_t>)
+			static void impl(T& client, TypeErasedCallback callback, LocalPlayerID player, [[maybe_unused]] Deserializer<MemoryViewReader>& reader, [[maybe_unused]] std::tuple<> args, std::integer_sequence<size_t>)
 			{
 				(client.*reinterpret_cast<Multiplayer_Photon::EventCallbackType<T, Args...>>(callback))(player);
 			}

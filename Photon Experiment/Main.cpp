@@ -61,39 +61,39 @@ public:
 
 private:
 
-	void onIntEvent(LocalPlayerID sender, int32 value)
+	void onIntEvent([[maybe_unused]] LocalPlayerID sender, int32 value)
 	{
 		debugLog(U"<<< IntEvent を受信: {}"_fmt(value));
 	}
 
-	void onStringEvent(LocalPlayerID sender, String value)
+	void onStringEvent([[maybe_unused]] LocalPlayerID sender, String value)
 	{
 		debugLog(U"<<< StringEvent を受信: {}"_fmt(value));
 	}
 
-	void onStringEvent2(LocalPlayerID sender, String value)
+	void onStringEvent2([[maybe_unused]] LocalPlayerID sender, String value)
 	{
 		debugLog(U"<<< StringEvent2 を受信: {}"_fmt(value));
 	}
 
-	void onCustomDataTest1(LocalPlayerID sender) {
+	void onCustomDataTest1([[maybe_unused]] LocalPlayerID sender) {
 		debugLog(U"<<< CustomDataTest1 を受信");
 	}
 
-	void onCustomDataTest2(LocalPlayerID sender, Array<double> a) {
+	void onCustomDataTest2([[maybe_unused]] LocalPlayerID sender, Array<double> a) {
 		debugLog(U"<<< CustomDataTest2 を受信: {}"_fmt(a));
 	}
 
-	void onCustomDataTest3(LocalPlayerID sender, Array<double>& a) {
+	void onCustomDataTest3([[maybe_unused]] LocalPlayerID sender, Array<double>& a) {
 		debugLog(U"<<< CustomDataTest3 を受信: {}"_fmt(a));
 	}
 
-	void onCustomDataTest4(LocalPlayerID sender, Array<double>&& a) {
+	void onCustomDataTest4([[maybe_unused]] LocalPlayerID sender, Array<double>&& a) {
 		debugLog(U"<<< CustomDataTest4 を受信: {}"_fmt(a));
 	}
 
 	// シリアライズデータを受信したときに呼ばれる関数をオーバーライドしてカスタマイズする
-	void customEventAction(const LocalPlayerID playerID, const uint8 eventCode, Deserializer<MemoryViewReader>& reader) override
+	void customEventAction([[maybe_unused]] const LocalPlayerID playerID, const uint8 eventCode, [[maybe_unused]] Deserializer<MemoryViewReader>& reader) override
 	{
 		debugLog(U"<<< {} を受信"_fmt(eventCode));
 	}

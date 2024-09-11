@@ -118,32 +118,6 @@ namespace s3d
 		}
 
 		[[nodiscard]]
-		static Array<String> ToStringArray(const ExitGames::Common::JVector<ExitGames::Common::JString>& data)
-		{
-			Array<String> result(data.getSize());
-
-			for (uint32 i = 0; i < data.getSize(); ++i)
-			{
-				result[i] = ToString(data[i]);
-			}
-
-			return result;
-		}
-
-		[[nodiscard]]
-		static ExitGames::Common::JVector<ExitGames::Common::JString> ToJStringJVector(const Array<String>& data)
-		{
-			ExitGames::Common::JVector<ExitGames::Common::JString> result(static_cast<uint32>(data.size()));
-
-			for (size_t i = 0; i < data.size(); ++i)
-			{
-				result.addElement(ToJString(data[i]));
-			}
-
-			return result;
-		}
-
-		[[nodiscard]]
 		static ExitGames::LoadBalancing::RoomOptions ToRoomOptions(const RoomCreateOption& option)
 		{
 			ExitGames::LoadBalancing::RoomOptions roomOptions;
