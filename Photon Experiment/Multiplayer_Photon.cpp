@@ -255,11 +255,6 @@ namespace s3d
 			Deserializer<MemoryViewReader> reader{ data.getDataCopy(), size };
 
 			if (m_context.m_table.contains(eventCode)) {
-				m_context.debugLog(U"[Multiplayer_Photon] MultiplayerEvent received (dispatched to registered event handler)");
-				m_context.debugLog(U"- [Multiplayer_Photon] playerID: ", playerID);
-				m_context.debugLog(U"- [Multiplayer_Photon] eventCode: ", eventCode);
-				m_context.debugLog(U"- [Multiplayer_Photon] data: ", size, U" bytes (serialized)");
-
 				auto& receiver = m_context.m_table[eventCode];
 				(receiver.second)(m_context, receiver.first, playerID, reader);
 			}
